@@ -150,16 +150,17 @@ def MyTermdebug()
     # setbufvar("debugged-program", "&buflisted", 0)
     setbufvar("gdb communication", "&buflisted", 0)
 
-    # Aesthetical Termdebug
-    ArrangeAuxWindows()
-
     # We start the debugging session from the :Source window.
     exe "Source"
     source_win = win_getid()
+
+    # Aesthetical Termdebug. We arrange the windows while keeping the cursor
+    # in the Source window
+    ArrangeAuxWindows()
 enddef
 
 
-def GotoMonitorwinOrCreateIt()
+def GotoMonitorWinOrCreateIt()
   var mdf = ''
   if !win_gotoid(monitor_win)
 
