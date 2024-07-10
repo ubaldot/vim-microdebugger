@@ -10,11 +10,9 @@ given in
 [this](https://stackoverflow.com/questions/38033130/how-to-use-the-gdb-gnu-debugger-and-openocd-for-microcontroller-debugging-fr)
 picture.
 
-At this point, you have pretty much the same interface as Termdebug. I said
-"pretty much" because I added some eye-candy features that may not meet the
-preferences of some people used to Termdebug layout. Examples of such
-aesthetic changes affects auxiliary windows status lines, auxiliary buffers
-are now unlisted, and the windows layout is different.
+At this point, you have pretty much the same interface as Termdebug with few
+differences: auxiliary windows status lines are a bit different, auxiliary
+buffers are unlisted, and the windows layout is different.
 
 Furthermore, you can define more mappings and, in addition to the auxiliary
 windows provided by Termdebug, you have an extra window to run an external
