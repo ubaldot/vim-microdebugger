@@ -1,8 +1,8 @@
 # vim-microdebugger (WIP)
 
-A plugin built on top of Termdebug to play with micro-controllers and that
-relies on `openocd` (to be installed separately). This plugin is written in
-Vim9.
+A tiny plugin built on top of Termdebug to play with micro-controllers and
+that relies on `openocd` (to be installed separately). This plugin is written
+in Vim9.
 
 Microdebugger starts a `openocd` server in a hidden, unlisted buffer so that
 you can connect to it using Termdebug as a gdb client. A good explanation is
@@ -76,3 +76,5 @@ g:microdebugger_mappings = { C: '<Cmd>Continue<CR><cmd>call TermDebugSendCommand
     T: '<Cmd>Tbreak<CR><cmd>call TermDebugSendCommand("display")<cr>',
     X: '<cmd>call TermDebugSendCommand("set confirm off")<cr><cmd>call TermDebugSendCommand("exit")<cr>'}
 ```
+
+Happy debugging!
