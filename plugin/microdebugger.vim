@@ -211,7 +211,6 @@ def SetVarWindow(is_first: bool)
   exe "Var"
   setbufvar(var_bufname, "&buflisted", 0)
   var_bufnr = bufnr(var_bufname)
-  var_win = win_findbuf(var_bufnr)[0]
   var tmp_win = win_getid()
   if is_first
     wincmd L
@@ -221,8 +220,10 @@ def SetVarWindow(is_first: bool)
   else
     wincmd l
     split
+    var_win = win_getid()
     exe ":buffer " .. var_bufnr
     win_execute(tmp_win, 'close')
+    setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
   if exists('g:microdebugger_var_win_height')
     win_execute(var_win, $'resize {g:microdebugger_var_win_height}')
@@ -242,8 +243,10 @@ def SetAsmWindow(is_first: bool)
   else
     wincmd l
     split
+    asm_win = win_getid()
     exe ":buffer " .. asm_bufnr
     win_execute(tmp_win, 'close')
+    setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
   # if exists('g:microdebugger_asm_win_height')
   #   win_execute(asm_win, $'resize {g:microdebugger_asm_win_height}')
