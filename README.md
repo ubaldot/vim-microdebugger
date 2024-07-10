@@ -30,11 +30,11 @@ MicroDebugAsm # Create or jump to the disassemble window
 MicroDebugVar # Create or jump to the variables window
 ```
 
-The latter are wrappers around `:Asm` and `:Var` command of Termdebug that you
-should use if you use this plugin. Otherwise, the windows layout will get
+The latter are wrappers around `:Asm` and `:Var` commands of Termdebug that
+you should use if you use this plugin. Otherwise, the windows layout will get
 messy.
 
-The configuration parameters are:
+The configuration parameters are the following:
 
 ```
 g:microdebugger_openocd_command # Command to start openocd
