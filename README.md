@@ -12,11 +12,10 @@ picture.
 
 At this point, you have pretty much the same interface as Termdebug with few
 differences: auxiliary windows status lines are a bit different, auxiliary
-buffers are unlisted, and the windows layout is different.
-
-Furthermore, you can define more mappings and you have an extra window to run
-an external program, like for example `pyserial` to monitor the traffic on the
-serial port.
+buffers are unlisted, and the windows layout is different. Furthermore, you
+can define more mappings and you have an extra window to run an external
+program, like for example `pyserial` to monitor the traffic on the serial
+port.
 
 However, I'll try as much as I can to keep it in sync with Termdebug. For
 example, If some of these changes will be included in Termdebug then they will
