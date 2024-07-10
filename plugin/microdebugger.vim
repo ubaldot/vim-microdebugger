@@ -48,7 +48,7 @@ var asm_bufnr: number
 var asm_win: number
 
 var source_win: number
-var aux_windows: dict<string>
+var aux_windows: dict<func>
 
 def InitScriptVars()
     openocd_bufname = 'OPENOCD'
@@ -73,7 +73,7 @@ def InitScriptVars()
 
     source_win = 0
 
-    aux_windows = {variables: 'Var', monitor: 'Monitor', asm: 'Asm', openocd: 'Openocd'}
+    aux_windows = {variables: SetVarWindow, monitor: SetMonitorWindow, asm: SetAsmWindow, openocd: SetOpenocdWindow}
 enddef
 
 def SanityCheck(): bool
@@ -104,6 +104,10 @@ def SanityCheck(): bool
           is_check_ok = false
         endif
       endfor
+      if index(g:microdebugger_aux_windows, 'monitor') != -1 && !exists('g:microdebugger_monitor_command')
+          Echoerr("You shall set 'g:microdebugger_monitor_command' or remove 'monitor' from 'g:microdebugger_aux_windows'" )
+          is_check_ok = false
+      endif
     endif
 
     return is_check_ok
@@ -156,12 +160,17 @@ def MyTermdebug()
 
     # Aesthetical Termdebug. We arrange the windows while keeping the cursor
     # in the Source window
-    ArrangeAuxWindows()
+    if exists('g:microdebugger_aux_windows') && !empty(g:microdebugger_aux_windows)
+      ArrangeAuxWindows()
+    endif
+
+    if exists('g:microdebugger_gdb_win_height')
+      win_execute(gdb_win, $'resize {g:microdebugger_gdb_win_height}')
+    endif
 enddef
 
-
 def GotoMonitorWinOrCreateIt()
-  var mdf = ''
+  # var mdf = ''
   if !win_gotoid(monitor_win)
 
     monitor_win = win_getid()
@@ -181,34 +190,48 @@ def GotoMonitorWinOrCreateIt()
     else
       # TODO: This won't work, you need to start the terminal
       exe "silent file " .. monitor_bufname
-      monitorbufnr = bufnr(monitor_bufname)
+      monitor_bufnr = bufnr(monitor_bufname)
     endif
 
   endif
 enddef
 
 def ArrangeAuxWindows()
-    if bufexists(var_bufname)
-        setbufvar(var_bufname, "&buflisted", 0)
-        var_bufnr = bufnr(var_bufname)
-        var_win = win_findbuf(var_bufnr)[0]
-        if var_win > 0
-            setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
-        endif
-    endif
 
-    if bufexists(asm_bufname)
-        setbufvar(asm_bufname, "&buflisted", 0)
-        asm_bufnr = bufnr(asm_bufname)
-        asm_win = win_findbuf(asm_bufnr)[0]
-        if asm_win > 0
-            setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
-        endif
-    endif
+    # Call function to adjust user-defined window.
+    aux_windows[g:microdebugger_aux_windows[0]]()
+    echom string(aux_windows[g:microdebugger_aux_windows[0]])
+    wincmd L
+    exe $"vertical resize {&columns / 3}"
+
+    # Stack the rest of the windows
+    for key in g:microdebugger_aux_windows[1 : ]
+      wincmd l
+      split
+      aux_windows[key]()
+      echom string(aux_windows[key])
+    endfor
+    # if bufexists(var_bufname)
+    #     setbufvar(var_bufname, "&buflisted", 0)
+    #     var_bufnr = bufnr(var_bufname)
+    #     var_win = win_findbuf(var_bufnr)[0]
+    #     if var_win > 0
+    #         setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+    #     endif
+    # endif
+
+    # if bufexists(asm_bufname)
+    #     setbufvar(asm_bufname, "&buflisted", 0)
+    #     asm_bufnr = bufnr(asm_bufname)
+    #     asm_win = win_findbuf(asm_bufnr)[0]
+    #     if asm_win > 0
+    #         setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+    #     endif
+    # endif
 
     # Create monitor buffer/window below the Termdebug-variables-window
-    if exists('g:microdebugger_monitor_command')
-        exe "Var"
+    # if exists('g:microdebugger_monitor_command')
+        # exe "Var"
         # TODO check if to run a shell and then a program. NOTE: conda envs
         # may mess up things, this is call a command in term_start rather than
         # a shell
@@ -216,16 +239,60 @@ def ArrangeAuxWindows()
         # var serial_monitor_bufno = term_start(&shell, {"term_name": "serial_monitor"})
         # term_sendkeys(serial_monitor_bufno, "make monitor\n")
         #
-        win_execute(win_getid(), 'term_start(g:microdebugger_monitor_command,
-                    \ {term_name: monitor_bufname})' )
-        monitor_bufnr = bufnr(monitor_bufname)
-        setbufvar(monitor_bufname, "&buflisted", 0)
-        setwinvar(win_getid(), '&statusline', '%#StatusLine# %t(%n)%m%*' )
+        # win_execute(win_getid(), 'term_start(g:microdebugger_monitor_command,
+        #             \ {term_name: monitor_bufname})' )
+        # monitor_bufnr = bufnr(monitor_bufname)
+        # setbufvar(monitor_bufname, "&buflisted", 0)
+        # setwinvar(win_getid(), '&statusline', '%#StatusLine# %t(%n)%m%*' )
 
-        if exists('g:microdebugger_monitor_win_height')
-            win_execute(bufwinid(monitor_bufname), $"resize {g:microdebugger_monitor_win_height}")
-        endif
+        # if exists('g:microdebugger_monitor_win_height')
+        #     win_execute(bufwinid(monitor_bufname), $"resize {g:microdebugger_monitor_win_height}")
+        # endif
+    # endif
+enddef
+
+def SetVarWindow()
+      exe "Var"
+      setbufvar(var_bufname, "&buflisted", 0)
+      var_bufnr = bufnr(var_bufname)
+      # var_win = win_findbuf(var_bufnr)[0]
+      if asm_win > 0
+        wincmd l
+        exe ":buffer " .. var_bufnr
+        var_win = win_getid()
+        setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+        wincmd p
+        wincmd c
+      endif
+    if exists('g:microdebugger_var_win_height')
+      win_execute(var_win, $'resize {g:microdebugger_var_win_height}')
     endif
+enddef
+
+def SetMonitorWindow()
+  GotoMonitorWinOrCreateIt()
+  echo "foo"
+enddef
+
+def SetAsmWindow()
+    exe "Asm"
+    setbufvar(asm_bufname, "&buflisted", 0)
+    asm_bufnr = bufnr(asm_bufname)
+    if var_win > 0
+      wincmd l
+      exe ":buffer " .. asm_bufnr
+      asm_win = win_getid()
+      setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+      wincmd p
+      wincmd c
+    endif
+    if exists('g:microdebugger_asm_win_height')
+       win_execute(asm_win, $'resize {g:microdebugger_asm_win_height}')
+    endif
+enddef
+
+def SetOpenocdWindow()
+  # echo "foo"
 enddef
 
 def ShutoffTermdebug()
