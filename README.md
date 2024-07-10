@@ -12,8 +12,10 @@ picture.
 
 At this point, you have pretty much the same interface as Termdebug. I said
 "pretty much" because I added some eye-candy features that may not meet the
-preferences of some people used to Termdebug layout. Hence, it is perhaps
-better to have the chance of two different aesthetic views separate.
+preferences of some people used to Termdebug layout.
+
+<!-- Hence, it is perhaps -->
+<!-- better to have the chance of two different aesthetic views separate. -->
 
 Examples of such aesthetic changes are the status lines of the auxiliary
 windows that are a bit more clean, the auxiliary buffers are unlisted and
