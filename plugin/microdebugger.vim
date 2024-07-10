@@ -50,8 +50,6 @@ var asm_win: number
 var source_win: number
 var aux_windows: dict<func>
 
-var initial_view: any
-
 def InitScriptVars()
   openocd_bufname = 'OPENOCD'
   openocd_bufnr = 0
@@ -74,10 +72,10 @@ def InitScriptVars()
   asm_win = 0
 
   source_win = 0
-
   aux_windows = {variables: SetVarWindow, monitor: SetMonitorWindow, asm: SetAsmWindow, openocd: SetOpenocdWindow}
-  initial_view = []
 
+  g:termdebug_config['variables_window'] = 0
+  g:termdebug_config['disasm_window'] = 0
 enddef
 
 def SanityCheck(): bool
@@ -117,65 +115,6 @@ def SanityCheck(): bool
   return is_check_ok
 enddef
 
-
-def SaveCurrentView()
-   #  Iterate through each window on the current tab page
-   var win_info = {}
-   for win_num in range(1, winnr('$'))
-      win_info = {
-            bufnr: winbufnr(win_num),   # Buffer number in the current window
-            win_config: winsaveview(),  # Window configuration (position, size, etc.)
-            }
-        add(initial_view, win_info)
-        echom "buffer: " .. winbufnr(win_num)
-   endfor
-enddef
-
-def RestoreCurrentView(view: list<any> )
-    # Function to recursively create the window layout
-    def Restore_layout(layout: any)
-      echom "layout: " .. string(layout[0])
-        if layout[0] == 'leaf'
-            # If it's a leaf, just open the buffer
-            execute 'buffer ' .. layout[1]
-        else
-            # If it's a split, create the splits
-            var split_type = layout[0] == 'row' ? 'split' : 'vsplit'
-            for child in layout[1]
-                # Create the split
-                execute split_type
-                Restore_layout(child)
-                # Move to the previous window to correctly nest splits
-                wincmd p
-            endfor
-        endif
-    enddef
-
-    # Close all existing windows except the current one
-    execute 'only'
-
-    # Restore the layout
-    Restore_layout(view[1])
-
-    # Close the initial window opened by 'only'
-    execute 'bdelete'
-enddef
-
-# def RestoreCurrentView()
-#     # Close all existing windows except the current one
-#     execute 'only'
-
-#     # Restore each window in the saved layout
-#     for win_info in initial_view
-#         # Open a new window and set its buffer
-#         echom "buffer: " .. win_info['bufnr']
-#         execute 'sbuffer ' .. win_info['bufnr']
-
-#         # Restore window configuration (position, size, scroll position)
-#         winrestview(win_info['win_config'])
-#     endfor
-# enddef
-
 def MyTermdebug()
   InitScriptVars()
   if !SanityCheck()
@@ -202,11 +141,6 @@ def MyTermdebug()
   setbufvar(gdb_bufname, "&buflisted", 0)
   setwinvar(gdb_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
 
-  # Set the height of the gdb console
-  # if exists('g:microdebugger_gdb_win_height')
-  #   win_execute(gdb_win, $"resize {g:microdebugger_gdb_win_height}")
-  # endif
-
   # We close "debugged-program" buffer because it may not be of interest for
   # embedded.
   if !empty(win_findbuf(bufnr("debugged-program")))
@@ -215,7 +149,7 @@ def MyTermdebug()
 
   # Unlist the buffers opened by termdebug and by this plugin
   # setbufvar("debugged-program", "&buflisted", 0)
-  setbufvar("gdb communication", "&buflisted", 0)
+  setbufvar("gdb communication", "&buflisted", false)
 
   # We start the debugging session from the :Source window.
   exe "Source"
@@ -230,8 +164,6 @@ def MyTermdebug()
   if exists('g:microdebugger_gdb_win_height')
     win_execute(gdb_win, $'resize {g:microdebugger_gdb_win_height}')
   endif
-  # SaveCurrentView()
-   initial_view = winlayout()
 enddef
 
 def GotoMonitorWinOrCreateIt()
@@ -263,69 +195,81 @@ def GotoMonitorWinOrCreateIt()
 enddef
 
 def ArrangeAuxWindows()
-  # Call function to adjust user-defined window.
-  aux_windows[g:microdebugger_aux_windows[0]](true)
-
-  # Stack the rest of the windows
-  for key in g:microdebugger_aux_windows[1 : ]
-    aux_windows[key](false)
+  # Stack aux buffers
+  for key in g:microdebugger_aux_windows
+    aux_windows[key]()
   endfor
-
-  win_execute(win_getid(winnr('$')), $'vertical resize {&columns / 3}')
 enddef
 
-def SetVarWindow(is_first: bool)
-  exe "Var"
-  setbufvar(var_bufname, "&buflisted", false)
-  setbufvar(var_bufname, "&bufhidden", 'hide')
-  var_bufnr = bufnr(var_bufname)
-  var tmp_win = win_getid()
-  if is_first
-    wincmd L
-    var_win = win_getid()
-    setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
-  else
-    wincmd l
-    split
-    exe ":buffer " .. var_bufnr
-    win_execute(tmp_win, 'close')
-    setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
-    echom "var_win: " .. var_win
+def DisplayedAuxBuffers(): number
+  var aux_buf = [openocd_bufnr, monitor_bufnr, var_bufnr, asm_bufnr]
+  var displayed_aux_buffers = 0
+  for buf in aux_buf
+    if buf > 0 && !empty(win_findbuf(buf))
+     displayed_aux_buffers += 1
+    endif
+  endfor
+  return displayed_aux_buffers
+enddef
+
+def SetVarWindow()
+  if !win_gotoid(var_win)
+    exe "Var"
+    setbufvar(var_bufname, "&buflisted", false)
+    var_bufnr = bufnr(var_bufname)
+    var tmp_win = win_getid()
+    # if you are the first, go on the side
+    if DisplayedAuxBuffers() == 1
+      wincmd L
+      var_win = win_getid()
+      setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+    else
+      wincmd l
+      split
+      exe ":buffer " .. var_bufnr
+      win_execute(tmp_win, 'close')
+      setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+      echom "var_win: " .. var_win
+    endif
   endif
+  win_execute(win_getid(winnr('$')), $'vertical resize {&columns / 3}')
   # if exists('g:microdebugger_var_win_height')
   #   win_execute(var_win, $'resize {g:microdebugger_var_win_height}')
   # endif
 enddef
 
-def SetAsmWindow(is_first: bool)
-  exe "Asm"
-  setbufvar(asm_bufname, "&buflisted", false)
-  setbufvar(asm_bufname, "&bufhidden", 'hide')
-  asm_bufnr = bufnr(asm_bufname)
-  var tmp_win = win_getid()
-  if is_first
-    wincmd L
-    asm_win = win_getid()
-    setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
-  else
-    wincmd l
-    split
-    asm_win = win_getid()
-    exe ":buffer " .. asm_bufnr
-    win_execute(tmp_win, 'close')
-    setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+def SetAsmWindow()
+  if !win_gotoid(asm_win)
+    exe "Asm"
+    setbufvar(asm_bufname, "&buflisted", false)
+    asm_bufnr = bufnr(asm_bufname)
+    var tmp_win = win_getid()
+    # if you are the first, go on the side
+    if DisplayedAuxBuffers() == 1
+      wincmd L
+      asm_win = win_getid()
+      setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+    else
+      wincmd l
+      split
+      asm_win = win_getid()
+      exe ":buffer " .. asm_bufnr
+      win_execute(tmp_win, 'close')
+      setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+    endif
   endif
+  win_execute(win_getid(winnr('$')), $'vertical resize {&columns / 3}')
   # if exists('g:microdebugger_asm_win_height')
   #   win_execute(asm_win, $'resize {g:microdebugger_asm_win_height}')
   # endif
 enddef
 
-def SetMonitorWindow(is_first: bool)
+def SetMonitorWindow()
   GotoMonitorWinOrCreateIt()
   setbufvar(monitor_bufname, "&buflisted", false)
   monitor_bufnr = bufnr(monitor_bufname)
   var tmp_win = win_getid()
-  if is_first
+  if DisplayedAuxBuffers() == 1
     wincmd L
     monitor_win = win_getid()
     setwinvar(monitor_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
@@ -393,6 +337,7 @@ augroup MyTermdebugOverrides
 augroup END
 
 command! MicroDebug MyTermdebug()
-command! MicroDebugRestoreView RestoreCurrentView(initial_view)
+# TODO, switch between true and false
+command! MicroDebugAsm SetAsmWindow()
 
 # vim: sw=2 sts=2 et
