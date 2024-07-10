@@ -129,7 +129,7 @@ def MyTermdebug()
 
   # 1. Start openocd
   openocd_bufnr = term_start(&shell, {term_name: openocd_bufname, hidden: 1, term_finish: 'close'})
-  term_sendkeys(openocd_bufnr, g:microdebugger_openocd_command)
+  term_sendkeys(openocd_bufnr, join(g:microdebugger_openocd_command))
   setbufvar(openocd_bufname, "&buflisted", 0)
 
   # 2. Start Termdebug and connect the gdb client to openocd (see g:termdebug_config['command'])
