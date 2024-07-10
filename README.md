@@ -12,13 +12,9 @@ picture.
 
 At this point, you have pretty much the same interface as Termdebug. I said
 "pretty much" because I added some eye-candy features that may not meet the
-preferences of some people used to Termdebug layout.
-
-<!-- Hence, it is perhaps -->
-<!-- better to have the chance of two different aesthetic views separate. -->
-
-Examples of such aesthetic changes affects auxiliary windows status lines,
-auxiliary buffers are now unlisted, and the windows layout is different.
+preferences of some people used to Termdebug layout. Examples of such
+aesthetic changes affects auxiliary windows status lines, auxiliary buffers
+are now unlisted, and the windows layout is different.
 
 Furthermore, you can define more mappings and, in addition to the auxiliary
 windows provided by Termdebug, you have an extra window to run an external
