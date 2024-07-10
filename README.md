@@ -17,14 +17,13 @@ preferences of some people used to Termdebug layout.
 <!-- Hence, it is perhaps -->
 <!-- better to have the chance of two different aesthetic views separate. -->
 
-Examples of such aesthetic changes are the status lines of the auxiliary
-windows that are a bit more clean, the auxiliary buffers are unlisted and
-there is the possibility to arrange the windows a bit differently.
+Examples of such aesthetic changes affects auxiliary windows status lines,
+auxiliary buffers are now unlisted, and the windows layout is different.
 
 Furthermore, you can define more mappings and, in addition to the auxiliary
-windows provided by Termdebug, such a variables and disassemble window, you
-have an extra window to run an external program, like for example `pyserial`
-to monitor the traffic on the serial port.
+windows provided by Termdebug, you have an extra window to run an external
+program, like for example `pyserial` to monitor the traffic on the serial
+port.
 
 However, I'll try as much as I can to keep it in sync with Termdebug. For
 example, If some of these changes will be included in Termdebug then they will
