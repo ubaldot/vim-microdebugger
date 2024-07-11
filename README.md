@@ -1,14 +1,12 @@
 # vim-microdebugger (WIP)
 
-A tiny plugin built on top of Termdebug to play with micro-controllers and
-that relies on `openocd` (to be installed separately). This plugin is written
-in Vim9.
+A tiny plugin built on top of Termdebug to play with micro-controllers. It is
+written in Vim9 and it relies on `openocd` (to be installed separately).
 
 Microdebugger starts a `openocd` server in a hidden, unlisted buffer so that
-you can connect to it using Termdebug as a gdb client. A good explanation is
-given in
-[this](https://stackoverflow.com/questions/38033130/how-to-use-the-gdb-gnu-debugger-and-openocd-for-microcontroller-debugging-fr)
-picture.
+you can connect to it using Termdebug as a gdb client. A good overview of how
+openocd works along with different clients is given in
+[this](https://stackoverflow.com/questions/38033130/how-to-use-the-gdb-gnu-debugger-and-openocd-for-microcontroller-debugging-fr).
 
 At this point, you have pretty much the same interface as Termdebug with few
 differences: the `debugged-program` window is not used, the status lines are a
@@ -18,14 +16,15 @@ extra window to run an external program, like for example `pyserial` to
 monitor the traffic on the serial port.
 
 However, I'll try as much as I can to keep it in sync with Termdebug. For
-example, If some of these changes will be included in Termdebug then they will
-be removed from here.
+example, if some of the mentioned changes will be included in Termdebug then
+they will be removed from here.
 
 The available commands are:
 
 ```
 MicroDebug  # Starts the microdebugger
 MicroDebugMonitor # Create or jump to the monitor window
+MicroDebugOpenocd # Create or jump to the openocd window
 MicroDebugAsm # Create or jump to the disassemble window
 MicroDebugVar # Create or jump to the variables window
 ```
@@ -41,6 +40,8 @@ g:microdebugger_openocd_command # Command to start openocd
 g:microdebugger_aux_windows # List of windows to include in the layout. Possible values: 'variables', 'asm', 'monitor', 'openocd'.
 g:microdebugger_monitor_command # Program to be executed in the monitor window
 g:microdebugger_gdb_win_height # Height of gdb window
+g:microdebugger_aux_win_pos # Stacked aux windows position: 'L' or 'H'
+g:microdebugger_aux_win_width # Width of the stacked aux windows
 g:microdebugger_mappings # User-defined mappings
 ```
 
@@ -69,5 +70,9 @@ g:microdebugger_mappings = { C: '<Cmd>Continue<CR><cmd>call TermDebugSendCommand
     T: '<Cmd>Tbreak<CR><cmd>call TermDebugSendCommand("display")<cr>',
     X: '<cmd>call TermDebugSendCommand("set confirm off")<cr><cmd>call TermDebugSendCommand("exit")<cr>'}
 ```
+
+Finally, in addition to the events offered by Termdebug, you have an
+additional event `MicrodebuggerStartPost` that you can use in your
+auto-commands.
 
 Happy debugging!
