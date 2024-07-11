@@ -26,6 +26,12 @@ def Echowarn(msg: string)
   echohl WarningMsg | echom $'[microdebugger] {msg}' | echohl None
 enddef
 
+command! MicroDebug MyTermdebug()
+command! MicroDebugAsm SetAsmWindow()
+command! MicroDebugVar SetVarWindow()
+command! MicroDebugMonitor SetMonitorWindow()
+command! MicroDebugOpenocd SetOpenocdWindow()
+
 # Script global variables
 var openocd_bufname: string
 var openocd_bufnr: number
@@ -122,7 +128,7 @@ def MyTermdebug()
   endif
 
   # TODO: Check if this appears
-  echo "Starting microdebugger for project: " .. fnamemodify(getcwd(), ':t')
+  # echo "Starting microdebugger for project: " .. fnamemodify(getcwd(), ':t')
   if !exists('g:termdebug_loaded')
     packadd termdebug
   endif
@@ -166,33 +172,6 @@ def MyTermdebug()
   endif
 enddef
 
-def GotoMonitorWinOrCreateIt()
-  # var mdf = ''
-  if !win_gotoid(monitor_win)
-
-    monitor_win = win_getid()
-
-    setlocal nowrap
-    setlocal noswapfile
-    setlocal buftype=nofile
-    setlocal bufhidden=wipe
-    setlocal signcolumn=no
-    setlocal modifiable
-    setlocal statusline=%#StatusLine#\ %t(%n)%m%*
-    setlocal nobuflisted
-
-    # If exists, then open, otherwise create
-    if monitor_bufnr > 0 && bufexists(monitor_bufnr)
-      exe ':buffer ' .. monitor_bufnr
-    else
-      # TODO: This won't work, you need to start the terminal
-      term_start(g:microdebugger_monitor_command, {term_name: monitor_bufname, hidden: 1, term_finish: 'close'})
-      # exe "silent file " .. monitor_bufname
-      monitor_bufnr = bufnr(monitor_bufname)
-    endif
-
-  endif
-enddef
 
 def ArrangeAuxWindows()
   # Stack aux buffers
@@ -206,7 +185,7 @@ def DisplayedAuxBuffers(): number
   var displayed_aux_buffers = 0
   for buf in aux_buf
     if buf > 0 && !empty(win_findbuf(buf))
-     displayed_aux_buffers += 1
+      displayed_aux_buffers += 1
     endif
   endfor
   return displayed_aux_buffers
@@ -221,16 +200,14 @@ def SetVarWindow()
     # if you are the first, go on the side
     if DisplayedAuxBuffers() == 1
       wincmd L
-      var_win = win_getid()
-      setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
     else
       wincmd l
       split
       exe ":buffer " .. var_bufnr
       win_execute(tmp_win, 'close')
-      setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
-      echom "var_win: " .. var_win
     endif
+    var_win = win_getid()
+    setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
   win_execute(win_getid(winnr('$')), $'vertical resize {&columns / 3}')
   # if exists('g:microdebugger_var_win_height')
@@ -247,16 +224,14 @@ def SetAsmWindow()
     # if you are the first, go on the side
     if DisplayedAuxBuffers() == 1
       wincmd L
-      asm_win = win_getid()
-      setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
     else
       wincmd l
       split
-      asm_win = win_getid()
       exe ":buffer " .. asm_bufnr
       win_execute(tmp_win, 'close')
-      setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
     endif
+    asm_win = win_getid()
+    setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
   win_execute(win_getid(winnr('$')), $'vertical resize {&columns / 3}')
   # if exists('g:microdebugger_asm_win_height')
@@ -265,27 +240,57 @@ def SetAsmWindow()
 enddef
 
 def SetMonitorWindow()
-  GotoMonitorWinOrCreateIt()
-  setbufvar(monitor_bufname, "&buflisted", false)
-  monitor_bufnr = bufnr(monitor_bufname)
-  var tmp_win = win_getid()
-  if DisplayedAuxBuffers() == 1
-    wincmd L
+  if !win_gotoid(monitor_win)
+    CreateMonitorWindow()
+    var tmp_win = win_getid()
+    # if you are the first, go on the side
+    if DisplayedAuxBuffers() == 1
+      wincmd L
+    else
+      wincmd l
+      split
+      exe ":buffer " .. monitor_bufnr
+      win_execute(tmp_win, 'close')
+    endif
     monitor_win = win_getid()
     setwinvar(monitor_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
-  else
-    wincmd l
-    split
-    exe ":buffer " .. monitor_bufnr
-    win_execute(tmp_win, 'close')
   endif
+  # win_execute(win_getid(winnr('$')), $'vertical resize {&columns / 3}')
   # if exists('g:microdebugger_monitor_win_height')
   #   win_execute(monitor_win, $'resize {g:microdebugger_monitor_win_height}')
   # endif
 enddef
 
+def CreateMonitorWindow()
+  # If exists, then open, otherwise create
+  # TODO: This won't work, you need to start the terminal
+  monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname})
+  term_wait(monitor_bufnr, 100)
+  # term_sendkeys(monitor_bufnr, join(g:microdebugger_monitor_command))
+
+  setbufvar(monitor_bufnr, "&wrap", false)
+  setbufvar(monitor_bufnr, "&swapfile", false)
+  setbufvar(monitor_bufnr, "&bufhidden", 'wipe')
+  setbufvar(monitor_bufnr, "&buflisted", false)
+  setbufvar(monitor_bufnr, "&signcolumn", 'no')
+enddef
+
 def SetOpenocdWindow()
-  # echo "foo"
+  if !win_gotoid(monitor_win)
+    split
+    exe "buffer " .. openocd_bufnr
+    var tmp_win = win_getid()
+    if DisplayedAuxBuffers() == 1
+      wincmd L
+    else
+      wincmd l
+      split
+      exe ":buffer " .. openocd_bufnr
+      win_execute(tmp_win, 'close')
+    endif
+    openocd_win = win_getid()
+    setwinvar(openocd_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+  endif
 enddef
 
 def ShutoffTermdebug()
@@ -307,6 +312,12 @@ augroup END
 var existing_mappings = {}
 
 def SetUpTermdebugOverrides()
+
+  delcommand MicroDebugAsm
+  delcommand MicroDebugVar
+  delcommand MicroDebugMonitor
+  delcommand MicroDebugOpenocd
+
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
       # Save possibly existing mappings
@@ -336,8 +347,5 @@ augroup MyTermdebugOverrides
   autocmd User TermdebugStopPost  TearDownTermdebugOverrides()
 augroup END
 
-command! MicroDebug MyTermdebug()
-# TODO, switch between true and false
-command! MicroDebugAsm SetAsmWindow()
 
 # vim: sw=2 sts=2 et
