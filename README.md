@@ -19,6 +19,8 @@ However, I'll try as much as I can to keep it in sync with Termdebug. For
 example, if some of the mentioned changes will be included in Termdebug then
 they will be removed from here.
 
+## Commands
+
 The available commands are:
 
 ```
@@ -32,6 +34,8 @@ MicroDebugVar # Create or jump to the variables window
 The latter are wrappers around `:Asm` and `:Var` commands of Termdebug that
 you should use if you use this plugin. Otherwise, the windows layout will get
 messy.
+
+## Configuration
 
 The configuration parameters are the following:
 
@@ -70,6 +74,8 @@ g:microdebugger_mappings = { C: '<Cmd>Continue<CR><cmd>call TermDebugSendCommand
     T: '<Cmd>Tbreak<CR><cmd>call TermDebugSendCommand("display")<cr>',
     X: '<cmd>call TermDebugSendCommand("set confirm off")<cr><cmd>call TermDebugSendCommand("exit")<cr>'}
 ```
+
+## Events
 
 Finally, in addition to the events offered by Termdebug, you have an
 additional event `MicrodebuggerStartPost` that you can use in your
