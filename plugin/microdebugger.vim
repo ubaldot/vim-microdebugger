@@ -55,6 +55,8 @@ var aux_bufnames: dict<string>
 var aux_windows_pos: string
 var aux_windows_width: number
 
+var term_waiting_time: number
+
 var existing_mappings: dict<any>
 
 def InitScriptVars()
@@ -85,6 +87,7 @@ def InitScriptVars()
   aux_bufnames = {variables: var_bufname, monitor: monitor_bufname, asm: asm_bufname, openocd: openocd_bufname}
   aux_windows_pos = get(g:, 'microdebugger_aux_win_pos', 'L')
   aux_windows_width = get(g:, 'microdebugger_aux_win_width', &columns / 3)
+  term_waiting_time = get(g:, 'microdebugger_monitor_waiting_time', 100)
 
   existing_mappings = {}
 
@@ -136,7 +139,7 @@ def SanityCheck(): bool
 enddef
 
 def MyTermdebug()
-  if g:termdebug_is_running
+  if exists('g:termdebug_is_running') && g:termdebug_is_running
     Echoerr('Terminal debugger is already running, cannot run two')
     return
   endif
@@ -287,7 +290,7 @@ def CreateMonitorWindow()
   # If exists, then open, otherwise create
   # TODO: This won't work, you need to start the terminal
   monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname})
-  term_wait(monitor_bufnr, 100)
+  term_wait(monitor_bufnr, term_waiting_time)
   # term_sendkeys(monitor_bufnr, join(g:microdebugger_monitor_command))
 
   setbufvar(monitor_bufnr, "&wrap", false)
@@ -307,13 +310,6 @@ def ShutoffTermdebug()
     endif
   endfor
 enddef
-
-augroup OpenOCDShutdown
-  autocmd!
-  autocmd User TermdebugStopPost ShutoffTermdebug()
-augroup END
-
-# Mappings
 
 def SetUpMicrodebugger()
 
@@ -349,6 +345,7 @@ def TearDownMicrodebugger()
       endif
     endfor
   endif
+  ShutoffTermdebug()
 enddef
 
 augroup MyTermdebugOverrides

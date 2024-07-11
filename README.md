@@ -43,6 +43,7 @@ The configuration parameters are the following:
 g:microdebugger_openocd_command # Command to start openocd
 g:microdebugger_aux_windows # List of windows to include in the layout. Possible values: 'variables', 'asm', 'monitor', 'openocd'.
 g:microdebugger_monitor_command # Program to be executed in the monitor window
+g:microdebugger_monitor_waiting_time # If the program in the monitor window takes time to start up, increase this value (default 100ms)
 g:microdebugger_gdb_win_height # Height of gdb window
 g:microdebugger_aux_win_pos # Stacked aux windows position: 'L' or 'H'
 g:microdebugger_aux_win_width # Width of the stacked aux windows
