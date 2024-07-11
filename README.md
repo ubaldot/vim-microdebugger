@@ -61,6 +61,7 @@ vim9script
 g:termdebug_config['command'] = ['arm-none-eabi-gdb', '-ex', '"target extended-remote localhost:3333"', '-ex', '"monitor reset"', './build/myfile.elf']
 
 g:microdebugger_openocd_command = ['openocd', '-f', 'stlink.cfg', '-f', 'stm32f4x.cfg']
+# Or something like g:microdebugger_openocd_command = ['cmd.exe', '/c', 'openocd_startup.bat']
 g:microdebugger_aux_windows = ['variables', 'monitor']
 g:microdebugger_monitor_command = ['screen', '/dev/ttyUSB0', '115200']
 g:microdebugger_gdb_win_height = 8
