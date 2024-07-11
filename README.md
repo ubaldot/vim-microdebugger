@@ -73,8 +73,7 @@ g:microdebugger_mappings = { C: '<Cmd>Continue<CR><cmd>call TermDebugSendCommand
     F: '<Cmd>Finish<CR><cmd>call TermDebugSendCommand("display")<cr>',
     S: '<Cmd>Stop<CR><cmd>call TermDebugSendCommand("display")<cr>',
     U: '<Cmd>Until<CR><cmd>call TermDebugSendCommand("display")<cr>',
-    T: '<Cmd>Tbreak<CR><cmd>call TermDebugSendCommand("display")<cr>',
-    X: '<cmd>call TermDebugSendCommand("set confirm off")<cr><cmd>call TermDebugSendCommand("exit")<cr>'}
+    T: '<Cmd>Tbreak<CR><cmd>call TermDebugSendCommand("display")<cr>'}
 ```
 
 ## Events

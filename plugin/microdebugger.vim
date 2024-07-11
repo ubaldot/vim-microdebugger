@@ -232,7 +232,7 @@ def SetVarWindow()
     exe "Var"
     setbufvar(var_bufname, "&buflisted", false)
     var_bufnr = bufnr(var_bufname)
-    SetWindowCommon(var_bufnr)
+    # SetWindowCommon(var_bufnr)
     var_win = win_getid()
     setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
@@ -307,7 +307,8 @@ enddef
 def CreateMonitorWindow()
   # If exists, then open, otherwise create
   # TODO: This won't work, you need to start the terminal
-  monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname, 'exit_cb': MonitorExitHandler})
+  # monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname, 'exit_cb': MonitorExitHandler})
+  monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname})
   term_wait(monitor_bufnr, term_waiting_time)
   # term_sendkeys(monitor_bufnr, join(g:microdebugger_monitor_command))
 
