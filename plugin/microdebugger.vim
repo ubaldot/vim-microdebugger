@@ -26,7 +26,7 @@ def Echowarn(msg: string)
   echohl WarningMsg | echom $'[microdebugger] {msg}' | echohl None
 enddef
 
-command! MicroDebug MyTermdebug()
+command! MicroDebug MicrodebuggerStart()
 
 # Script global variables
 var openocd_bufname: string
@@ -138,7 +138,15 @@ def SanityCheck(): bool
   return is_check_ok
 enddef
 
-def MyTermdebug()
+
+def OpenOcdExitHandler(job_id: any, exit_status: number)
+  if exit_status != 0
+    Echoerr('OpenOCD cannot start. Microdebugger will not work properly.')
+    # ShutoffMicrodebugger()
+  endif
+enddef
+
+def MicrodebuggerStart()
   if exists('g:termdebug_is_running') && g:termdebug_is_running
     Echoerr('Terminal debugger is already running, cannot run two')
     return
@@ -154,8 +162,11 @@ def MyTermdebug()
   endif
 
   # 1. Start openocd
-  openocd_bufnr = term_start(&shell, {term_name: openocd_bufname, hidden: 1, term_finish: 'close'})
-  term_sendkeys(openocd_bufnr, join(g:microdebugger_openocd_command))
+  # openocd_bufnr = term_start(&shell, {term_name: openocd_bufname, hidden: 1, term_finish: 'close'})
+  # term_sendkeys(openocd_bufnr, join(g:microdebugger_openocd_command))
+  # TODO
+  # openocd_bufnr = term_start(g:microdebugger_openocd_command, {term_name: openocd_bufname, hidden: 1, term_finish: 'close'})
+  openocd_bufnr = term_start(g:microdebugger_openocd_command, {term_name: openocd_bufname, hidden: 1, 'exit_cb': OpenOcdExitHandler})
   setbufvar(openocd_bufname, "&buflisted", 0)
 
   # 2. Start Termdebug and connect the gdb client to openocd (see g:termdebug_config['command'])
@@ -286,10 +297,17 @@ def SetWindowCommon(bufnr: number)
   endif
 enddef
 
+def MonitorExitHandler(job_id: any, exit_status: number)
+  if exit_status != 0
+    Echoerr('The monitor program cannot start.')
+    # ShutoffMicrodebugger()
+  endif
+enddef
+
 def CreateMonitorWindow()
   # If exists, then open, otherwise create
   # TODO: This won't work, you need to start the terminal
-  monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname})
+  monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname, 'exit_cb': MonitorExitHandler})
   term_wait(monitor_bufnr, term_waiting_time)
   # term_sendkeys(monitor_bufnr, join(g:microdebugger_monitor_command))
 
@@ -301,7 +319,7 @@ def CreateMonitorWindow()
 enddef
 
 
-def ShutoffTermdebug()
+def ShutoffMicrodebugger()
   # Extension of Termdebug CloseBuffers() function
   var bufnumbers = [monitor_bufnr, openocd_bufnr]
   for bufnr in bufnumbers
@@ -331,10 +349,10 @@ enddef
 
 def TearDownMicrodebugger()
 
-  delcommand MicroDebugAsm
-  delcommand MicroDebugVar
-  delcommand MicroDebugMonitor
-  delcommand MicroDebugOpenocd
+  silent delcommand MicroDebugAsm
+  silent delcommand MicroDebugVar
+  silent delcommand MicroDebugMonitor
+  silent delcommand MicroDebugOpenocd
 
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
@@ -345,10 +363,10 @@ def TearDownMicrodebugger()
       endif
     endfor
   endif
-  ShutoffTermdebug()
+  ShutoffMicrodebugger()
 enddef
 
-augroup MyTermdebugOverrides
+augroup MicrodebuggerSetUpTearDown
   autocmd!
   autocmd User TermdebugStartPost SetUpMicrodebugger()
   autocmd User TermdebugStopPost  TearDownMicrodebugger()
