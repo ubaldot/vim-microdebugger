@@ -5,8 +5,8 @@ written in Vim9 and it relies on `openocd` (to be installed separately).
 
 Microdebugger starts a `openocd` server in a hidden, unlisted buffer so that
 you can connect to it using Termdebug as a gdb client. A good overview of how
-openocd works along with different clients is given in
-[this](https://stackoverflow.com/questions/38033130/how-to-use-the-gdb-gnu-debugger-and-openocd-for-microcontroller-debugging-fr).
+openocd works along with different clients is given
+[here](https://stackoverflow.com/questions/38033130/how-to-use-the-gdb-gnu-debugger-and-openocd-for-microcontroller-debugging-fr).
 
 At this point, you have pretty much the same interface as Termdebug with few
 differences: the `debugged-program` window is not used, the status lines are a
