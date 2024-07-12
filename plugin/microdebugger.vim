@@ -32,10 +32,12 @@ command! MicroDebug MicrodebuggerStart()
 var openocd_bufname: string
 var openocd_bufnr: number
 var openocd_win: number
+var openocd_failure: bool
 
 var monitor_bufname: string
 var monitor_bufnr: number
 var monitor_win: number
+var monitor_failure: bool
 
 var gdb_bufname: string
 var gdb_bufnr: number
@@ -55,7 +57,8 @@ var aux_bufnames: dict<string>
 var aux_windows_pos: string
 var aux_windows_width: number
 
-var term_waiting_time: number
+var monitor_term_waiting_time: number
+var openocd_term_waiting_time: number
 
 var existing_mappings: dict<any>
 
@@ -63,10 +66,12 @@ def InitScriptVars()
   openocd_bufname = 'OPENOCD'
   openocd_bufnr = 0
   openocd_win = 0
+  openocd_failure = false
 
   monitor_bufname = 'Monitor'
   monitor_bufnr = 0
   monitor_win = 0
+  monitor_failure = false
 
   gdb_bufname = 'gdb'
   gdb_bufnr = 0
@@ -87,7 +92,9 @@ def InitScriptVars()
   aux_bufnames = {variables: var_bufname, monitor: monitor_bufname, asm: asm_bufname, openocd: openocd_bufname}
   aux_windows_pos = get(g:, 'microdebugger_aux_win_pos', 'L')
   aux_windows_width = get(g:, 'microdebugger_aux_win_width', &columns / 3)
-  term_waiting_time = get(g:, 'microdebugger_monitor_waiting_time', 100)
+
+  monitor_term_waiting_time = get(g:, 'microdebugger_monitor_waiting_time', 100)
+  openocd_term_waiting_time = get(g:, 'microdebugger_openocd_waiting_time', 1000)
 
   existing_mappings = {}
 
@@ -138,10 +145,10 @@ def SanityCheck(): bool
   return is_check_ok
 enddef
 
-
 def OpenOcdExitHandler(job_id: any, exit_status: number)
   if exit_status != 0
-    Echoerr('OpenOCD cannot start. Microdebugger will not work properly.')
+    Echoerr('OpenOCD cannot start.')
+    openocd_failure = true
     # ShutoffMicrodebugger()
   endif
 enddef
@@ -167,7 +174,12 @@ def MicrodebuggerStart()
   # TODO
   # openocd_bufnr = term_start(g:microdebugger_openocd_command, {term_name: openocd_bufname, hidden: 1, term_finish: 'close'})
   openocd_bufnr = term_start(g:microdebugger_openocd_command, {term_name: openocd_bufname, hidden: 1, 'exit_cb': OpenOcdExitHandler})
-  setbufvar(openocd_bufname, "&buflisted", 0)
+  term_wait(openocd_bufname, openocd_term_waiting_time)
+  setbufvar(openocd_bufname, "&buflisted", false)
+  if openocd_failure || openocd_bufnr == 0
+    silent exe $"bw! {openocd_bufnr}"
+    return
+  endif
 
   # 2. Start Termdebug and connect the gdb client to openocd (see g:termdebug_config['command'])
   execute "Termdebug"
@@ -176,12 +188,13 @@ def MicrodebuggerStart()
   gdb_bufnr = bufnr()
   gdb_win = win_getid()
   setbufvar(gdb_bufname, "&buflisted", 0)
+  setbufvar(gdb_bufname, "&bufhidden", 'wipe')
   setwinvar(gdb_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
 
   # We close "debugged-program" buffer because it may not be of interest for
   # embedded.
-  if !empty(win_findbuf(bufnr("debugged-program")))
-    execute ":close " ..  bufwinnr("debugged-program")
+  if bufexists("debugged-program")
+    execute ":bw! " ..  bufnr("debugged-program")
   endif
 
   # Unlist the buffers opened by termdebug and by this plugin
@@ -195,6 +208,9 @@ def MicrodebuggerStart()
   # in the Source window
   if exists('g:microdebugger_aux_windows') && !empty(g:microdebugger_aux_windows)
     ArrangeAuxWindows()
+    if monitor_failure
+      return
+    endif
   endif
 
   if exists('g:microdebugger_gdb_win_height')
@@ -227,31 +243,49 @@ def DisplayedAuxBuffers(): list<number>
   return displayed_aux_buffers
 enddef
 
+def ResizeAuxWindows()
+  if win_gotoid(openocd_win)
+    win_execute(openocd_win, $'vertical resize {aux_windows_width}')
+  elseif win_gotoid(monitor_win)
+    win_execute(monitor_win, $'vertical resize {aux_windows_width}')
+  endif
+enddef
+
 def SetVarWindow()
+  # exe "Var"
+  # setbufvar(var_bufname, "&buflisted", false)
+  # setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+  # ResizeAuxWindows()
   if !win_gotoid(var_win)
     exe "Var"
-    setbufvar(var_bufname, "&buflisted", false)
+    # setbufvar(var_bufname, "&buflisted", false)
+    # setbufvar(var_bufnr, "&bufhidden", 'hide')
     var_bufnr = bufnr(var_bufname)
-    # SetWindowCommon(var_bufnr)
+    SetWindowCommon(var_bufnr)
     var_win = win_getid()
     setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
-  win_execute(var_win, $'vertical resize {aux_windows_width}')
   # if exists('g:microdebugger_var_win_height')
   #   win_execute(var_win, $'resize {g:microdebugger_var_win_height}')
   # endif
 enddef
 
 def SetAsmWindow()
+  # exe "Asm"
+  # setbufvar(asm_bufname, "&buflisted", false)
+  # setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+  # ResizeAuxWindows()
   if !win_gotoid(asm_win)
     exe "Asm"
-    setbufvar(asm_bufname, "&buflisted", false)
+    # setbufvar(asm_bufname, "&buflisted", false)
+    # setbufvar(asm_bufname, "&bufhidden", 'hide')
+    # setbufvar(asm_bufname, "&modified", true)
     asm_bufnr = bufnr(asm_bufname)
     SetWindowCommon(asm_bufnr)
     asm_win = win_getid()
     setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
-  win_execute(asm_win, $'vertical resize {aux_windows_width}')
+  # win_execute(asm_win, $'vertical resize {aux_windows_width}')
   # if exists('g:microdebugger_asm_win_height')
   #   win_execute(asm_win, $'resize {g:microdebugger_asm_win_height}')
   # endif
@@ -300,6 +334,7 @@ enddef
 def MonitorExitHandler(job_id: any, exit_status: number)
   if exit_status != 0
     Echoerr('The monitor program cannot start.')
+    monitor_failure = true
     # ShutoffMicrodebugger()
   endif
 enddef
@@ -307,14 +342,13 @@ enddef
 def CreateMonitorWindow()
   # If exists, then open, otherwise create
   # TODO: This won't work, you need to start the terminal
-  # monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname, 'exit_cb': MonitorExitHandler})
-  monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname})
-  term_wait(monitor_bufnr, term_waiting_time)
+  monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname, 'exit_cb': MonitorExitHandler})
+  term_wait(monitor_bufnr, monitor_term_waiting_time)
   # term_sendkeys(monitor_bufnr, join(g:microdebugger_monitor_command))
 
   setbufvar(monitor_bufnr, "&wrap", false)
   setbufvar(monitor_bufnr, "&swapfile", false)
-  setbufvar(monitor_bufnr, "&bufhidden", 'wipe')
+  setbufvar(monitor_bufnr, "&bufhidden", 'hide')
   setbufvar(monitor_bufnr, "&buflisted", false)
   setbufvar(monitor_bufnr, "&signcolumn", 'no')
 enddef
