@@ -67,7 +67,6 @@ def InitScriptVars()
   # -1 as initial condition
   openocd_bufnr = -1
   openocd_win = 0
-  # openocd_failure = false
 
   monitor_bufname = 'Monitor'
   monitor_bufnr = -1
@@ -88,7 +87,7 @@ def InitScriptVars()
   source_win = 0
   # The possible values for g:microdebugger_aux_windows corresponds to the
   # keys of the following dictionaries.
-  aux_windows = {variables: SetVarWindow, monitor: SetMonitorWindow, asm: SetAsmWindow, openocd: SetOpenocdWindow}
+  aux_windows = {variables: GotoOrCreateVarWindow, monitor: GotoOrCreateMonitorWindow, asm: GotoOrCreateAsmWindow, openocd: GotoOrCreateOpenocdWindow}
   aux_bufnames = {variables: var_bufname, monitor: monitor_bufname, asm: asm_bufname, openocd: openocd_bufname}
   aux_windows_pos = get(g:, 'microdebugger_aux_win_pos', 'L')
   aux_windows_width = get(g:, 'microdebugger_aux_win_width', &columns / 3)
@@ -176,11 +175,6 @@ def MicrodebuggerStart()
   endif
   term_wait(openocd_bufname, openocd_term_waiting_time)
   setbufvar(openocd_bufname, "&buflisted", false)
-  # Returning from OpenOcdExitHandler
-  # if openocd_failure
-    # ShutoffMicrodebugger()
-    # return
-  # endif
 
   # 2. Start Termdebug and connect the gdb client to openocd (see g:termdebug_config['command'])
   execute "Termdebug"
@@ -188,7 +182,7 @@ def MicrodebuggerStart()
   gdb_bufname = bufname()
   gdb_bufnr = bufnr()
   gdb_win = win_getid()
-  setbufvar(gdb_bufname, "&buflisted", 0)
+  setbufvar(gdb_bufname, "&buflisted", false)
   setbufvar(gdb_bufname, "&bufhidden", 'wipe')
   setwinvar(gdb_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
 
@@ -209,10 +203,6 @@ def MicrodebuggerStart()
   # in the Source window
   if exists('g:microdebugger_aux_windows') && !empty(g:microdebugger_aux_windows)
     ArrangeAuxWindows()
-    # if !ArrangeAuxWindows()
-    #   ShutoffMicrodebugger()
-    #   return
-    # endif
   endif
 
   if exists('g:microdebugger_gdb_win_height')
@@ -226,25 +216,19 @@ enddef
 
 def ArrangeAuxWindows()
   # Stack aux buffers
-  # var return_status = true
   for key in g:microdebugger_aux_windows
     aux_windows[key]()
-    # if !aux_windows[key]()
-    #   return_status = false
-    #   break
-    # endif
   endfor
-  # return return_status
 enddef
 
-def DisplayedAuxBuffers(): list<number>
+def AuxBuffersWinIDs(): list<number>
   # Return a list of windows ID:s displaying aux buffers
   var displayed_aux_buffers = []
   for key in g:microdebugger_aux_windows
     var aux_buf_nr = bufnr(aux_bufnames[key])
-    var wins_containing_buf = win_findbuf(aux_buf_nr)
-    if bufexists(aux_buf_nr) && aux_buf_nr > 0 && !empty(wins_containing_buf)
-      add(displayed_aux_buffers, wins_containing_buf[0])
+    var win_containing_buf = bufwinid(aux_buf_nr)
+    if bufexists(aux_buf_nr) && aux_buf_nr > 0 && win_containing_buf != -1
+      add(displayed_aux_buffers, win_containing_buf)
     endif
   endfor
   return displayed_aux_buffers
@@ -258,18 +242,14 @@ def ResizeAuxWindows()
   endif
 enddef
 
-def SetVarWindow()
-  # exe "Var"
-  # setbufvar(var_bufname, "&buflisted", false)
-  # setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
-  # ResizeAuxWindows()
+def GotoOrCreateVarWindow()
   if !win_gotoid(var_win)
     exe "Var"
-    # setbufvar(var_bufname, "&buflisted", false)
-    # setbufvar(var_bufnr, "&bufhidden", 'hide')
+    setbufvar(var_bufname, "&buflisted", false)
     var_bufnr = bufnr(var_bufname)
-    SetWindowCommon(var_bufnr)
     var_win = win_getid()
+    echom "var_win:" .. var_win
+    SetWindowCommon(bufwinnr(var_bufnr))
     setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
   # if exists('g:microdebugger_var_win_height')
@@ -277,70 +257,61 @@ def SetVarWindow()
   # endif
 enddef
 
-def SetAsmWindow()
-  # exe "Asm"
-  # setbufvar(asm_bufname, "&buflisted", false)
-  # setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
-  # ResizeAuxWindows()
+def GotoOrCreateAsmWindow()
   if !win_gotoid(asm_win)
     exe "Asm"
-    # setbufvar(asm_bufname, "&buflisted", false)
-    # setbufvar(asm_bufname, "&bufhidden", 'hide')
-    # setbufvar(asm_bufname, "&modified", true)
+    setbufvar(asm_bufname, "&buflisted", false)
     asm_bufnr = bufnr(asm_bufname)
-    SetWindowCommon(asm_bufnr)
     asm_win = win_getid()
+    echom "asm_win:" .. asm_win
+    SetWindowCommon(bufwinnr(asm_bufnr))
     setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
-  # return true
   # win_execute(asm_win, $'vertical resize {aux_windows_width}')
   # if exists('g:microdebugger_asm_win_height')
   #   win_execute(asm_win, $'resize {g:microdebugger_asm_win_height}')
   # endif
 enddef
 
-def SetMonitorWindow()
+def GotoOrCreateMonitorWindow()
   if !win_gotoid(monitor_win)
     CreateMonitorWindow()
-    # if !CreateMonitorWindow()
-    #   return false
-    # endif
-    SetWindowCommon(monitor_bufnr)
     monitor_win = win_getid()
+    echom "monitor_win:" .. monitor_win
+    SetWindowCommon(bufwinnr(monitor_bufnr))
     setwinvar(monitor_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
   win_execute(monitor_win, $'vertical resize {aux_windows_width}')
-  # return true
   # if exists('g:microdebugger_monitor_win_height')
   #   win_execute(monitor_win, $'resize {g:microdebugger_monitor_win_height}')
   # endif
 enddef
 
-def SetOpenocdWindow()
-  if !win_gotoid(monitor_win)
+def GotoOrCreateOpenocdWindow()
+  if !win_gotoid(openocd_win)
     split
     exe "buffer " .. openocd_bufnr
-    SetWindowCommon(openocd_bufnr)
     openocd_win = win_getid()
+    echom "openocd_win:" .. openocd_win
+    SetWindowCommon(bufwinnr(openocd_bufnr))
     setwinvar(openocd_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
   win_execute(openocd_win, $'vertical resize {aux_windows_width}')
-  # return true
 enddef
 
-def SetWindowCommon(bufnr: number)
+def SetWindowCommon(current_win_nr: number)
   # If it is the first window, then place it in a side. Otherwise, stack to
   # the existings
-  var tmp_win = win_getid()
-  var displayed_buffers = DisplayedAuxBuffers()
-  # if you are the first, go on the side
-  if len(displayed_buffers) == 1
+  var aux_buf_winids = AuxBuffersWinIDs()
+  var prev_win = -1
+  echom aux_buf_winids
+  if len(aux_buf_winids) == 1
     exe $'wincmd {aux_windows_pos}'
   else
-    win_gotoid(displayed_buffers[0])
-    split
-    exe ":buffer " .. bufnr
-    win_execute(tmp_win, 'close')
+    win_gotoid(aux_buf_winids[-1])
+    prev_win = win_id2win(aux_buf_winids[-2])
+    echom "current_win_nr: " .. current_win_nr
+    win_splitmove(current_win_nr, prev_win)
   endif
 enddef
 
@@ -352,32 +323,28 @@ enddef
 
 def CreateMonitorWindow()
   # If exists, then open, otherwise create
-  # TODO: This won't work, you need to start the terminal
   silent! monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname, exit_cb: MonitorExitHandler})
-  # silent! monitor_bufnr = term_start(join(g:microdebugger_monitor_command), {term_name: monitor_bufname})
   if monitor_bufnr == 0
     Echoerr('Monitor program cannot start.')
     return
   endif
   term_wait(monitor_bufnr, monitor_term_waiting_time)
-  # term_sendkeys(monitor_bufnr, join(g:microdebugger_monitor_command))
 
   setbufvar(monitor_bufnr, "&wrap", false)
   setbufvar(monitor_bufnr, "&swapfile", false)
   setbufvar(monitor_bufnr, "&bufhidden", 'hide')
   setbufvar(monitor_bufnr, "&buflisted", false)
   setbufvar(monitor_bufnr, "&signcolumn", 'no')
-  # return true
 enddef
 
 
 
 def SetUpMicrodebugger()
 
-  command! MicroDebugAsm SetAsmWindow()
-  command! MicroDebugVar SetVarWindow()
-  command! MicroDebugMonitor SetMonitorWindow()
-  command! MicroDebugOpenocd SetOpenocdWindow()
+  command! MicroDebugAsm GotoOrCreateAsmWindow()
+  command! MicroDebugVar GotoOrCreateVarWindow()
+  command! MicroDebugMonitor GotoOrCreateMonitorWindow()
+  command! MicroDebugOpenocd GotoOrCreateOpenocdWindow()
 
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
@@ -407,10 +374,10 @@ def TearDownMicrodebugger()
   # Use this to shutoff everything AFTER TermdebugStartPost event is
   # triggered
 
-  silent! delcommand MicroDebugAsm
-  silent! delcommand MicroDebugVar
-  silent! delcommand MicroDebugMonitor
-  silent! delcommand MicroDebugOpenocd
+  delcommand MicroDebugAsm
+  delcommand MicroDebugVar
+  delcommand MicroDebugMonitor
+  delcommand MicroDebugOpenocd
 
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
