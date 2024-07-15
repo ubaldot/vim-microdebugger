@@ -19,10 +19,6 @@ layout is different. Furthermore, you can define more mappings and you have an
 extra window to run an external program, like for example `pyserial` to
 monitor the traffic on the serial port.
 
-When you want to create or jump to the variables or the asm windows, don't use
-the termdebug commands `:Var` and `:Asm`, but use `:MicroDebugVar` and
-`:MicroDebugAsm` instead.
-
 I'll try as much as I can to keep it in sync with Termdebug. For example, if
 some of the mentioned changes will be included in Termdebug then they will be
 removed from here.
