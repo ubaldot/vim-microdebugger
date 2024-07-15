@@ -34,11 +34,13 @@ partially on Linux. When the plugin execution is terminated, you get an error
 message about OpenOCD. You can safely ignore it, it is only and `echo` that is
 erroneously triggered.
 
-> [!IMPORTANT] > _For Windows users._ In some cases the output of the gdb
-> console is redirected to the `:Source` window for some strange reasons. _BE
-> CAREFUL_ because this means that the messages that shall be displayed in the
-> gdb console are being appended to your source file instead! _Check that your
-> source file is not going to be modified!_
+> [!CAUTION]
+>
+> **For Windows users.** In some cases the output of the gdb
+> console is redirected to the `:Source` window for some strange reasons. **BE
+> CAREFUL** because this means that the messages that shall be displayed in the
+> gdb console are being appended to your source file instead! **Check that your
+> source file is not going to be modified!**
 >
 > To trigger such a behavior you could issue a `Run` followed by `Stop`.
 > Whatever you write in the gdb console won't appear there but it is going to
@@ -108,4 +110,4 @@ Finally, in addition to the events offered by Termdebug, you have an
 additional event `MicrodebuggerStartPost` that you can use in your
 auto-commands.
 
-Happy debugging!
+**Happy debugging!**
