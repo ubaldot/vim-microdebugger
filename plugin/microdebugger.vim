@@ -92,7 +92,7 @@ def InitScriptVars()
   aux_windows_pos = get(g:, 'microdebugger_aux_win_pos', 'L')
   aux_windows_width = get(g:, 'microdebugger_aux_win_width', &columns / 3)
 
-  monitor_term_waiting_time = get(g:, 'microdebugger_monitor_waiting_time', 100)
+  monitor_term_waiting_time = get(g:, 'microdebugger_monitor_waiting_time', 1000)
   openocd_term_waiting_time = get(g:, 'microdebugger_openocd_waiting_time', 1000)
 
   existing_mappings = {}
@@ -231,6 +231,7 @@ def AuxBuffersWinIDs(): list<number>
       add(displayed_aux_buffers, win_containing_buf)
     endif
   endfor
+  echom "displayed_aux_buffers: " .. string(displayed_aux_buffers)
   return displayed_aux_buffers
 enddef
 
@@ -249,9 +250,10 @@ def GotoOrCreateVarWindow()
     var_bufnr = bufnr(var_bufname)
     var_win = win_getid()
     echom "var_win:" .. var_win
-    SetWindowCommon(bufwinnr(var_bufnr))
+    SetWindowCommon(var_win)
     setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
+  win_execute(var_win, $'vertical resize {aux_windows_width}')
   # if exists('g:microdebugger_var_win_height')
   #   win_execute(var_win, $'resize {g:microdebugger_var_win_height}')
   # endif
@@ -264,10 +266,10 @@ def GotoOrCreateAsmWindow()
     asm_bufnr = bufnr(asm_bufname)
     asm_win = win_getid()
     echom "asm_win:" .. asm_win
-    SetWindowCommon(bufwinnr(asm_bufnr))
+    SetWindowCommon(asm_win)
     setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
-  # win_execute(asm_win, $'vertical resize {aux_windows_width}')
+  win_execute(asm_win, $'vertical resize {aux_windows_width}')
   # if exists('g:microdebugger_asm_win_height')
   #   win_execute(asm_win, $'resize {g:microdebugger_asm_win_height}')
   # endif
@@ -275,10 +277,15 @@ enddef
 
 def GotoOrCreateMonitorWindow()
   if !win_gotoid(monitor_win)
-    CreateMonitorWindow()
+    if index(term_list(), monitor_bufnr) == -1
+      CreateMonitorWindow()
+    else
+      split
+      exe "buffer " .. monitor_bufnr
+    endif
     monitor_win = win_getid()
     echom "monitor_win:" .. monitor_win
-    SetWindowCommon(bufwinnr(monitor_bufnr))
+    SetWindowCommon(monitor_win)
     setwinvar(monitor_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
   win_execute(monitor_win, $'vertical resize {aux_windows_width}')
@@ -293,25 +300,33 @@ def GotoOrCreateOpenocdWindow()
     exe "buffer " .. openocd_bufnr
     openocd_win = win_getid()
     echom "openocd_win:" .. openocd_win
-    SetWindowCommon(bufwinnr(openocd_bufnr))
+    SetWindowCommon(openocd_win)
     setwinvar(openocd_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
   win_execute(openocd_win, $'vertical resize {aux_windows_width}')
 enddef
 
-def SetWindowCommon(current_win_nr: number)
+def SetWindowCommon(current_winid: number)
   # If it is the first window, then place it in a side. Otherwise, stack to
   # the existings
   var aux_buf_winids = AuxBuffersWinIDs()
-  var prev_win = -1
   echom aux_buf_winids
-  if len(aux_buf_winids) == 1
+  echom current_winid
+
+  var current_idx = index(aux_buf_winids, current_winid)
+  var current_win_nr = win_id2win(aux_buf_winids[current_idx])
+  var near_winnr = -1
+
+  if current_idx == 0 && len(aux_buf_winids) == 1
     exe $'wincmd {aux_windows_pos}'
+  elseif current_idx == 0 && len(aux_buf_winids) > 1
+    near_winnr = win_id2win(aux_buf_winids[1])
   else
-    win_gotoid(aux_buf_winids[-1])
-    prev_win = win_id2win(aux_buf_winids[-2])
-    echom "current_win_nr: " .. current_win_nr
-    win_splitmove(current_win_nr, prev_win)
+    near_winnr = win_id2win(aux_buf_winids[current_idx - 1])
+  endif
+
+  if near_winnr > 0
+    win_splitmove(current_win_nr, near_winnr)
   endif
 enddef
 
