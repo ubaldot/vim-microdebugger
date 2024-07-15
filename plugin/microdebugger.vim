@@ -231,7 +231,6 @@ def AuxBuffersWinIDs(): list<number>
       add(displayed_aux_buffers, win_containing_buf)
     endif
   endfor
-  echom "displayed_aux_buffers: " .. string(displayed_aux_buffers)
   return displayed_aux_buffers
 enddef
 
@@ -249,7 +248,6 @@ def GotoOrCreateVarWindow()
     setbufvar(var_bufname, "&buflisted", false)
     var_bufnr = bufnr(var_bufname)
     var_win = win_getid()
-    echom "var_win:" .. var_win
     SetWindowCommon(var_win)
     setwinvar(var_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
@@ -265,7 +263,6 @@ def GotoOrCreateAsmWindow()
     setbufvar(asm_bufname, "&buflisted", false)
     asm_bufnr = bufnr(asm_bufname)
     asm_win = win_getid()
-    echom "asm_win:" .. asm_win
     SetWindowCommon(asm_win)
     setwinvar(asm_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
@@ -284,7 +281,6 @@ def GotoOrCreateMonitorWindow()
       exe "buffer " .. monitor_bufnr
     endif
     monitor_win = win_getid()
-    echom "monitor_win:" .. monitor_win
     SetWindowCommon(monitor_win)
     setwinvar(monitor_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
@@ -299,7 +295,6 @@ def GotoOrCreateOpenocdWindow()
     split
     exe "buffer " .. openocd_bufnr
     openocd_win = win_getid()
-    echom "openocd_win:" .. openocd_win
     SetWindowCommon(openocd_win)
     setwinvar(openocd_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
@@ -310,8 +305,6 @@ def SetWindowCommon(current_winid: number)
   # If it is the first window, then place it in a side. Otherwise, stack to
   # the existings
   var aux_buf_winids = AuxBuffersWinIDs()
-  echom aux_buf_winids
-  echom current_winid
 
   var current_idx = index(aux_buf_winids, current_winid)
   var current_win_nr = win_id2win(aux_buf_winids[current_idx])
@@ -351,8 +344,6 @@ def CreateMonitorWindow()
   setbufvar(monitor_bufnr, "&buflisted", false)
   setbufvar(monitor_bufnr, "&signcolumn", 'no')
 enddef
-
-
 
 def SetUpMicrodebugger()
 
