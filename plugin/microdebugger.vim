@@ -12,10 +12,10 @@ if !has('vim9script') ||  v:version < 900
   finish
 endif
 
-# if exists('g:microdebugger_loaded')
-#     Echoerr('Plugin already loaded.')
-#     finish
-# endif
+if exists('g:microdebugger_loaded')
+    Echoerr('Plugin already loaded.')
+    finish
+endif
 g:microdebugger_loaded = true
 
 def Echoerr(msg: string)
@@ -163,7 +163,8 @@ def MicrodebuggerStart()
   endif
 
   if !exists('g:termdebug_loaded')
-    packadd termdebug
+    packadd! termdebug
+    # source ~/Documents/vim_official/vim/runtime/pack/dist/opt/termdebug/plugin/termdebug.vim
   endif
 
   # 1. Start openocd

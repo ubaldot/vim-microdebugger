@@ -3,6 +3,10 @@
 A tiny plugin built on top of Termdebug to play with micro-controllers. It is
 written in Vim9 and it relies on `openocd` (to be installed separately).
 
+<p align="center">
+<img src="/Microdebugger.png" width="75%" height="75%">
+</p>
+
 Microdebugger starts a `openocd` server in a hidden, unlisted buffer so that
 you can connect to it using Termdebug as a gdb client. A good overview of how
 openocd works along with different clients is given
@@ -15,9 +19,30 @@ layout is different. Furthermore, you can define more mappings and you have an
 extra window to run an external program, like for example `pyserial` to
 monitor the traffic on the serial port.
 
-However, I'll try as much as I can to keep it in sync with Termdebug. For
-example, if some of the mentioned changes will be included in Termdebug then
-they will be removed from here.
+When you want to create or jump to the variables or the asm windows, don't use
+the termdebug commands `:Var` and `:Asm`, but use `:MicroDebugVar` and
+`:MicroDebugAsm` instead.
+
+I'll try as much as I can to keep it in sync with Termdebug. For example, if
+some of the mentioned changes will be included in Termdebug then they will be
+removed from here.
+
+### Known bugs
+
+The plugin has been tested on macos, Windows (be careful, read below) and
+partially on Linux. When the plugin execution is terminated, you get an error
+message about OpenOCD. You can safely ignore it, it is only and `echo` that is
+erroneously triggered.
+
+> [!IMPORTANT] > _For Windows users._ In some cases the output of the gdb
+> console is redirected to the `:Source` window for some strange reasons. _BE
+> CAREFUL_ because this means that the messages that shall be displayed in the
+> gdb console are being appended to your source file instead! _Check that your
+> source file is not going to be modified!_
+>
+> To trigger such a behavior you could issue a `Run` followed by `Stop`.
+> Whatever you write in the gdb console won't appear there but it is going to
+> be appended to your source file.
 
 ## Commands
 
