@@ -4,7 +4,7 @@ A tiny plugin built on top of Termdebug to play with micro-controllers. It is
 written in Vim9 and it relies on `openocd` (to be installed separately).
 
 <p align="center">
-<img src="/Microdebugger.png" width="75%" height="75%">
+<img src="/Microdebugger.png" width="100%" height="100%">
 </p>
 
 Microdebugger starts a `openocd` server in a hidden, unlisted buffer so that
