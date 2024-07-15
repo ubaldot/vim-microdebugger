@@ -36,10 +36,10 @@ erroneously triggered.
 
 > [!CAUTION]
 >
-> **For Windows users.** In some cases the output of the gdb
-> console is redirected to the `:Source` window for some strange reasons. **BE
-> CAREFUL** because this means that the messages that shall be displayed in the
-> gdb console are being appended to your source file instead! **Check that your
+> **For Windows users.** In some cases the output of the gdb console is
+> redirected to the `:Source` window for some strange reasons. **BE CAREFUL**
+> because this means that the messages that shall be displayed in the gdb
+> console are being appended to your source file instead! **Check that your
 > source file is not going to be modified!**
 >
 > To trigger such a behavior you could issue a `Run` followed by `Stop`.
@@ -86,7 +86,7 @@ An example of initialization script could be the following:
 ```
 vim9script
 
-g:termdebug_config['command'] = ['arm-none-eabi-gdb', '-ex', '"target extended-remote localhost:3333"', '-ex', '"monitor reset"', './build/myfile.elf']
+g:termdebug_config['command'] = ['arm-none-eabi-gdb', '-ex', 'target extended-remote localhost:3333', '-ex', 'monitor reset']
 
 g:microdebugger_openocd_command = ['openocd', '-f', 'stlink.cfg', '-f', 'stm32f4x.cfg']
 # Or something like g:microdebugger_openocd_command = ['cmd.exe', '/c', 'openocd_startup.bat']
