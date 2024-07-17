@@ -177,6 +177,12 @@ def MicrodebuggerStart()
   term_wait(openocd_bufname, openocd_term_waiting_time)
   setbufvar(openocd_bufname, "&buflisted", false)
 
+  # For debugging
+  # var openocd_job = term_getjob(openocd_bufnr)
+  # ch_logfile('logfile', 'w')
+  # ch_log('openocd log')
+
+
   # 2. Start Termdebug and connect the gdb client to openocd (see g:termdebug_config['command'])
   execute "Termdebug"
   exe ":Gdb"
@@ -347,6 +353,9 @@ def CreateMonitorWindow()
 enddef
 
 def SetUpMicrodebugger()
+
+  # command! Stop g:TermDebugSendCommand("-interpreter-exec console \"monitor halt\"")
+  command! Resume g:TermDebugSendCommand("-interpreter-exec console \"monitor resume\"")
 
   command! MicroDebugAsm GotoOrCreateAsmWindow()
   command! MicroDebugVar GotoOrCreateVarWindow()
