@@ -32,15 +32,16 @@ erroneously triggered.
 
 > [!CAUTION]
 >
-> **For Windows users.** In some cases the output of the gdb console is
-> redirected to the `:Source` window for some strange reasons. **BE CAREFUL**
-> because this means that the messages that shall be displayed in the gdb
-> console are being appended to your source file instead! **Check that your
-> source file is not going to be modified!**
->
-> To trigger such a behavior you could issue a `Run` followed by `Stop`.
-> Whatever you write in the gdb console won't appear there but it is going to
-> be appended to your source file.
+> **For Windows users.**
+> **Don't run continue if you don't have any breakpoint set!**
+> Termdebug in windows runs in prompt mode. For some strange reason when you
+> run `continue` without any breakpoint or when you run `interrupt`, the connection with
+> openocd server is lost and the behavior becomes unpredictable. You detect
+> such anomaly when typing any command in the gdb console results in having no response.
+> **BE CAREFUL** Because in some unlucky cases the output of the gdb commands could be appended in your file
+> located in the `:Source` windows without you noticing it.
+> If you experience this behavior simply go to the gdb console windows, run
+> `:close!` and check the buffer in the `Source` window.
 
 ## Commands
 
