@@ -33,7 +33,7 @@ When the plugin execution is terminated, you get an error message about
 OpenOCD. You can safely ignore it, it is only an `echo` message that is
 erroneously triggered.
 
-> [!CAUTION]
+> [!WARNING]
 >
 > **For Windows users.** When you run `continue` with no breakpoints it does
 > not seem possible to take control back of the gdb console. Ideally, a
