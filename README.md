@@ -51,23 +51,37 @@ erroneously triggered.
 The available commands in addition to those provided by Termdebug are:
 
 ```
-MicroDebug  # Starts the microdebugger. Use this to start the microdebugger
-MicroDebugMonitor # Create or jump to the monitor window
-MicroDebugOpenocd # Create or jump to the openocd window
-MicroDebugHalt # Equivalent to `monitor halt`
-MicroDebugResume # Equivalent to `monitor resume`
-MicroDebugAsm # Create or jump to the disassemble window
-MicroDebugVar # Create or jump to the variables window
-```
-Do not use `:Termdebug` to start the MCU debugging but use `:MicroDebug`
-instead.
+# Starts the microdebugger. Use this to start the microdebugger
+:MicroDebug
 
-The commands `:MicroDebugAsm` and `:MicroDebugVar` in the list are wrappers around `:Asm` and `:Var` commands for Termdebug that
-you should use if you use this plugin. Otherwise, the windows layout will get messy.
+# Create or jump to the monitor window
+:MicroDebugMonitor
+
+# Create or jump to the openocd window
+:MicroDebugOpenocd
+
+# Equivalent to `monitor halt`
+:MicroDebugHalt
+
+# Equivalent to `monitor resume`
+:MicroDebugResume
+
+# Create or jump to the disassemble window
+:MicroDebugAsm
+
+# Create or jump to the variables window
+:MicroDebugVar
+```
+Do not use `:Termdebug` to start the MCU debugging but use `:MicroDebug` instead.
+
+The commands `:MicroDebugAsm` and `:MicroDebugVar` in the list are wrappers around `:Asm` and `:Var`
+commands for Termdebug thatvyou should use if you use this plugin. Otherwise, the windows layout will get messy.
+
 
 ## Configuration
 
 The configuration parameters are the following:
+
 
 ```
 # Command to start openocd
