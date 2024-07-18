@@ -48,13 +48,12 @@ erroneously triggered.
 
 ## Commands
 
-The available commands are:
+The available commands in addition to those provided by Termdebug are:
 
 ```
 MicroDebug  # Starts the microdebugger
 MicroDebugMonitor # Create or jump to the monitor window
 MicroDebugOpenocd # Create or jump to the openocd window
-InterruptGdb # To interrupt gdb execution (only available on Windows)
 MicroDebugAsm # Create or jump to the disassemble window
 MicroDebugVar # Create or jump to the variables window
 ```
