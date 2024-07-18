@@ -71,7 +71,7 @@ The configuration parameters are the following:
 
 ```
 g:microdebugger_openocd_command # Command to start openocd
-g:microdebugger_openocd_waiting_time# If openocd takes time to start up, increase this value (default 1000ms)
+g:microdebugger_openocd_waiting_time # If openocd takes time to start up, increase this value (default 1000ms)
 g:microdebugger_aux_windows # List of windows to include in the layout. Possible values: 'variables', 'asm', 'monitor', 'openocd'.
 g:microdebugger_monitor_command # Program to be executed in the monitor window
 g:microdebugger_monitor_waiting_time # If the program in the monitor window takes time to start up, increase this value (default 100ms)
