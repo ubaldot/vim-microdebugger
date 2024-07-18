@@ -25,7 +25,7 @@ removed from here.
 
 ### Known bugs
 
-The plugin has been tested on macos, Windows (be careful, read below) and
+The plugin has been tested on macos, Windows (read below) and
 partially on Linux. When the plugin execution is terminated, you get an error
 message about OpenOCD. You can safely ignore it, it is only and `echo` that is
 erroneously triggered.
@@ -33,15 +33,17 @@ erroneously triggered.
 > [!CAUTION]
 >
 > **For Windows users.**
-> **Don't run continue if you don't have any breakpoint set!**
-> Termdebug in windows runs in prompt mode. For some strange reason when you
-> run `continue` without any breakpoint or when you run `interrupt`, the connection with
-> openocd server is lost and the behavior becomes unpredictable. You detect
-> such anomaly when typing any command in the gdb console results in having no response.
-> **BE CAREFUL** Because in some unlucky cases the output of the gdb commands could be appended in your file
-> located in the `:Source` windows without you noticing it.
-> If you experience this behavior simply go to the gdb console windows, run
-> `:close!` and check the buffer in the `Source` window.
+> When you run `continue` with no breakpoints it does not seem possible to
+> take control back of the gdb console. In that case you must go on the gdb
+> console and`<c-w>:close!`.
+>
+> However, if you are willing to download [SendSignalCtrlC.exe](https://github.com/SergeyPirogov/video-recorder-java/raw/master/core/src/main/resources/SendSignalCtrlC.exe)
+> and place in your Windows path, then you have an additional command
+> `:Interrupt` mapped locally on `<c-c>` that you can use to interrupt the gdb
+> execution.
+>
+> **BE CAREFUL** since the command may append garbage to the buffer opened in
+> the `:Source` window.
 
 ## Commands
 
@@ -53,6 +55,7 @@ MicroDebugMonitor # Create or jump to the monitor window
 MicroDebugOpenocd # Create or jump to the openocd window
 MicroDebugAsm # Create or jump to the disassemble window
 MicroDebugVar # Create or jump to the variables window
+Interrupt # To interrupt gdb execution (only available on Windows)
 ```
 
 The latter are wrappers around `:Asm` and `:Var` commands of Termdebug that

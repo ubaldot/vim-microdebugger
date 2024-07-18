@@ -60,6 +60,7 @@ var monitor_term_waiting_time: number
 var openocd_term_waiting_time: number
 
 var existing_mappings: dict<any>
+var ctrl_c_map: dict<any>
 
 def InitScriptVars()
   openocd_bufname = 'OPENOCD'
@@ -186,6 +187,8 @@ def MicrodebuggerStart()
   # 2. Start Termdebug and connect the gdb client to openocd (see g:termdebug_config['command'])
   execute "Termdebug"
   exe ":Gdb"
+  ctrl_c_map_saved = maparg('<c-c>', 'i', false, true)
+  inoremap <buffer> <C-c> <cmd>Interrupt<cr>
   gdb_bufname = bufname()
   gdb_bufnr = bufnr()
   gdb_win = win_getid()
@@ -352,6 +355,16 @@ def CreateMonitorWindow()
   setbufvar(monitor_bufnr, "&signcolumn", 'no')
 enddef
 
+def InterruptGdb()
+  if executable('SendSignalCtrlC') && has('win32')
+    var gdb_pid =  system('powershell -Command "Get-Process -Name ' .. gdb_bufname .. '| ForEach-Object { $_.Id }"')
+    silent! exe $"!SendSignalCtrlC.exe {gdb_pid}"
+  else
+    Echoerr('SendSignalCtrlC.exe not found. Please, consider to download it and include it in the PATH.')
+  endif
+enddef
+
+
 def SetUpMicrodebugger()
 
   # command! Stop g:TermDebugSendCommand("-interpreter-exec console \"monitor halt\"")
@@ -361,6 +374,8 @@ def SetUpMicrodebugger()
   command! MicroDebugVar GotoOrCreateVarWindow()
   command! MicroDebugMonitor GotoOrCreateMonitorWindow()
   command! MicroDebugOpenocd GotoOrCreateOpenocdWindow()
+
+  command! Interrupt InterruptGdb()
 
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
@@ -394,6 +409,7 @@ def TearDownMicrodebugger()
   delcommand MicroDebugVar
   delcommand MicroDebugMonitor
   delcommand MicroDebugOpenocd
+  silent! delcommand Interrupt
 
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
@@ -404,6 +420,11 @@ def TearDownMicrodebugger()
       endif
     endfor
   endif
+
+  if !empty(ctrl_c_map_saved)
+    mapset('i', 0, ctrl_c_map_saved)
+  endif
+
   ShutoffMicrodebugger()
 enddef
 
