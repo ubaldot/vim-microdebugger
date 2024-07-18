@@ -51,8 +51,8 @@ erroneously triggered.
 The available commands in addition to those provided by Termdebug are:
 
 ```
+# Do not use :Termdebug to start the MCU debugging.
 MicroDebug  # Starts the microdebugger. Use this to start the microdebugger
-(do not use :Termdebug).
 MicroDebugMonitor # Create or jump to the monitor window
 MicroDebugOpenocd # Create or jump to the openocd window
 MicroDebugAsm # Create or jump to the disassemble window
