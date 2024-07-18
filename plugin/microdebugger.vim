@@ -1,6 +1,6 @@
 vim9script noclear
 
-# Termdebug settings for microcontroller applications
+# A tiny plugin on top of Termdebug for debugging MCUs code.
 # Maintainer: Ubaldo Tiberi
 # License: Vim license
 #
@@ -371,9 +371,7 @@ enddef
 
 def SetUpMicrodebugger()
 
-  # command! Stop g:TermDebugSendCommand("-interpreter-exec console \"monitor halt\"")
-  # command! Resume g:TermDebugSendCommand("-interpreter-exec console \"monitor resume\"")
-  #
+  # Stop command for Windows
   if executable('SendSignalCtrlC') && has('win32')
     command! Stop InterruptGdb()
   endif
@@ -382,6 +380,8 @@ def SetUpMicrodebugger()
   command! MicroDebugVar GotoOrCreateVarWindow()
   command! MicroDebugMonitor GotoOrCreateMonitorWindow()
   command! MicroDebugOpenocd GotoOrCreateOpenocdWindow()
+  command! MicroDebugHalt g:TermDebugSendCommand("-interpreter-exec console \"monitor halt\"")
+  command! MicroDebugResume g:TermDebugSendCommand("-interpreter-exec console \"monitor resume\"")
 
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
@@ -415,7 +415,8 @@ def TearDownMicrodebugger()
   delcommand MicroDebugVar
   delcommand MicroDebugMonitor
   delcommand MicroDebugOpenocd
-  silent! delcommand InterruptGdb
+  delcommand MicroDebugHalt
+  delcommand MicroDebugResume
 
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
