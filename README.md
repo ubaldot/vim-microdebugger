@@ -28,7 +28,7 @@ removed from here.
 
 The plugin has been tested on macos, Windows (read below) and
 partially on Linux. When the plugin execution is terminated, you get an error
-message about OpenOCD. You can safely ignore it, it is only and `echo` that is
+message about OpenOCD. You can safely ignore it, it is only an `echo` that is
 erroneously triggered.
 
 > [!CAUTION]

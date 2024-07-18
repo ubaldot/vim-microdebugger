@@ -97,6 +97,7 @@ def InitScriptVars()
   openocd_term_waiting_time = get(g:, 'microdebugger_openocd_waiting_time', 1000)
 
   existing_mappings = {}
+  ctrl_c_map_saved = {}
 
   g:termdebug_config['variables_window'] = 0
   g:termdebug_config['disasm_window'] = 0
@@ -187,8 +188,11 @@ def MicrodebuggerStart()
   # 2. Start Termdebug and connect the gdb client to openocd (see g:termdebug_config['command'])
   execute "Termdebug"
   exe ":Gdb"
-  ctrl_c_map_saved = maparg('<c-c>', 'i', false, true)
-  inoremap <buffer> <C-c> <cmd>InterruptGdb<cr>
+
+  if executable('SendSignalCtrlC') && has('win32')
+    ctrl_c_map_saved = maparg('<c-c>', 'i', false, true)
+    inoremap <buffer> <C-c> <cmd>Stop<cr>
+  endif
   gdb_bufname = bufname()
   gdb_bufnr = bufnr()
   gdb_win = win_getid()
@@ -368,14 +372,16 @@ enddef
 def SetUpMicrodebugger()
 
   # command! Stop g:TermDebugSendCommand("-interpreter-exec console \"monitor halt\"")
-  command! Resume g:TermDebugSendCommand("-interpreter-exec console \"monitor resume\"")
+  # command! Resume g:TermDebugSendCommand("-interpreter-exec console \"monitor resume\"")
+  #
+  if executable('SendSignalCtrlC') && has('win32')
+    command! Stop InterruptGdb()
+  endif
 
   command! MicroDebugAsm GotoOrCreateAsmWindow()
   command! MicroDebugVar GotoOrCreateVarWindow()
   command! MicroDebugMonitor GotoOrCreateMonitorWindow()
   command! MicroDebugOpenocd GotoOrCreateOpenocdWindow()
-
-  command! InterruptGdb InterruptGdb()
 
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
