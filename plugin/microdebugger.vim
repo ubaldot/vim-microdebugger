@@ -61,6 +61,9 @@ var openocd_term_waiting_time: number
 
 var existing_mappings: dict<any>
 var ctrl_c_map_saved: dict<any>
+var tab_map_saved: dict<any>
+
+var ctrl_c_program: string
 
 def InitScriptVars()
   openocd_bufname = 'OPENOCD'
@@ -98,9 +101,12 @@ def InitScriptVars()
 
   existing_mappings = {}
   ctrl_c_map_saved = {}
+  tab_map_saved = {}
 
   g:termdebug_config['variables_window'] = 0
   g:termdebug_config['disasm_window'] = 0
+
+  ctrl_c_program = get(g:, 'microdebugger_windows_CtrlC_program', '')
 enddef
 
 def SanityCheck(): bool
@@ -143,12 +149,19 @@ def SanityCheck(): bool
       is_check_ok = false
     endif
   endif
+
+  if has('win32') && empty(ctrl_c_program)
+    Echowarn("Cannot find a program for Ctrl-C. :Stop command is disabled")
+  elseif has('win32') && !executable(ctrl_c_program)
+    Echowarn($"Cannot find {ctrl_c_program} for Ctrl-C. :Stop command is disabled")
+  endif
+
   return is_check_ok
 enddef
 
 def OpenOcdExitHandler(job_id: any, exit_status: number)
   if exit_status != 0
-    Echoerr('OpenOCD detected some errors. Microdebugger will not work.')
+    Echoerr('OpenOCD detected some errors. Microdebugger will not work')
     # openocd_failure = true
   endif
 enddef
@@ -189,9 +202,11 @@ def MicrodebuggerStart()
   execute "Termdebug"
   exe ":Gdb"
 
-  if executable('SendSignalCtrlC') && has('win32')
+  if executable(ctrl_c_program) && has('win32')
     ctrl_c_map_saved = maparg('<c-c>', 'i', false, true)
+    tab_map_saved = maparg('<tab>', 'i', false, true)
     inoremap <buffer> <C-c> <cmd>Stop<cr>
+    inoremap <buffer> <tab> <c-x><c-f>
   endif
   gdb_bufname = bufname()
   gdb_bufnr = bufnr()
@@ -360,7 +375,7 @@ def CreateMonitorWindow()
 enddef
 
 def InterruptGdb()
-  if executable('SendSignalCtrlC') && has('win32')
+  if executable(ctrl_c_program) && has('win32')
     var gdb_pid =  system('powershell -Command "Get-Process -Name ' .. gdb_bufname .. '| ForEach-Object { $_.Id }"')
     silent! exe $"!SendSignalCtrlC.exe {gdb_pid}"
   else
@@ -372,8 +387,10 @@ enddef
 def SetUpMicrodebugger()
 
   # Stop command for Windows
-  if executable('SendSignalCtrlC') && has('win32')
+  if executable(ctrl_c_program) && has('win32')
     command! Stop InterruptGdb()
+  elseif has('win32')
+    command! Stop Echoerr("Cannot find a program for Ctrl-C. :Stop command is disabled")
   endif
 
   command! MicroDebugAsm GotoOrCreateAsmWindow()
@@ -430,6 +447,9 @@ def TearDownMicrodebugger()
 
   if !empty(ctrl_c_map_saved)
     mapset('i', 0, ctrl_c_map_saved)
+  endif
+  if !empty(tab_map_saved)
+    mapset('i', 0, tab_map_saved)
   endif
 
   ShutoffMicrodebugger()

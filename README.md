@@ -27,7 +27,7 @@ removed from here.
 ### Known bugs
 
 The plugin has been tested on macos, Windows (read below) and
-partially on Linux. 
+partially on Linux.
 
 When the plugin execution is terminated, you get an error
 message about OpenOCD. You can safely ignore it, it is only an `echo` message that is
@@ -37,13 +37,18 @@ erroneously triggered.
 >
 > **For Windows users.**
 > When you run `continue` with no breakpoints it does not seem possible to
-> take control back of the gdb console. In that case you must go on the gdb
-> console and`<c-w>:close!` to shutoff everything.
+> take control back of the gdb console. Ideally, a `ctrl-c` should interrupt gdb but it is not the case.
+> You must go on the gdb console and execute `<c-w>:close!` to shutoff everything.
 >
-> However, if you are willing to download [SendSignalCtrlC.exe](https://github.com/SergeyPirogov/video-recorder-java/raw/master/core/src/main/resources/SendSignalCtrlC.exe)
-> and place in your Windows path, then you have a working
-> `:Stop`  command mapped locally on `<c-c>` that you can use to interrupt the gdb
-> execution.
+> However, if you are willing to use an external program for sending `SIGINT`
+> signals, then you can set `g:microdebugger_windows_CtrlC_program`.
+> By doing that, `ctrl-c` would exploit such a program to interrupt the non-responding gdb.
+
+> For example, if you use [SendSignalCtrlC.exe](https://github.com/SergeyPirogov/video-recorder-java/raw/master/core/src/main/resources/SendSignalCtrlC.exe),
+> then you can set `g:microdebugger_windows_CtrlC_program = 'SendSignalCtrlC'`.
+> Be sure that such a program is in your Windows path.
+> Once done, you have a working `:Stop` command mapped locally to `<c-c>` to
+> interrupt the gdb execution.
 >
 > **BE CAREFUL** since the command may append garbage to the buffer opened in
 > the `:Source` window.
