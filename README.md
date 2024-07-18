@@ -39,8 +39,8 @@ erroneously triggered.
 > console and`<c-w>:close!`.
 >
 > However, if you are willing to download [SendSignalCtrlC.exe](https://github.com/SergeyPirogov/video-recorder-java/raw/master/core/src/main/resources/SendSignalCtrlC.exe)
-> and place in your Windows path, then you have an additional command
-> `:InterruptGdb` mapped locally on `<c-c>` that you can use to interrupt the gdb
+> and place in your Windows path, then you have a working
+> `:Stop`  command mapped locally on `<c-c>` that you can use to interrupt the gdb
 > execution.
 >
 > **BE CAREFUL** since the command may append garbage to the buffer opened in
