@@ -103,8 +103,8 @@ def InitScriptVars()
   ctrl_c_map_saved = {}
   tab_map_saved = {}
 
-  g:termdebug_config['variables_window'] = 0
-  g:termdebug_config['disasm_window'] = 0
+  g:termdebug_config['variables_window'] = false
+  g:termdebug_config['disasm_window'] = false
 
   ctrl_c_program = get(g:, 'microdebugger_windows_CtrlC_program', '')
 enddef
