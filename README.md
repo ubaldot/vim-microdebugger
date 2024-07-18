@@ -1,15 +1,15 @@
 # vim-microdebugger
 
 A tiny plugin built on top of Termdebug to play with micro-controllers. It is
-written in Vim9 and it relies on `openocd` (to be installed separately).
-It requires Vim 9.1516.
+written in Vim9 and it relies on `openocd` (to be installed separately). It
+requires Vim 9.1516.
 
 <p align="center">
 <img src="/Microdebugger.png" width="100%" height="100%">
 </p>
 
-Microdebugger starts a `openocd` server in a hidden, unlisted buffer that
-you can connect to by using Termdebug as a gdb client. A good overview of how
+Microdebugger starts a `openocd` server in a hidden, unlisted buffer that you
+can connect to by using Termdebug as a gdb client. A good overview of how
 openocd works along with different clients is given
 [here](https://stackoverflow.com/questions/38033130/how-to-use-the-gdb-gnu-debugger-and-openocd-for-microcontroller-debugging-fr).
 
@@ -26,29 +26,31 @@ removed from here.
 
 ### Known bugs
 
-The plugin has been tested on macos, Windows (read below) and
-partially on Linux.
+The plugin has been tested on macos, Windows (read below) and partially on
+Linux.
 
-When the plugin execution is terminated, you get an error
-message about OpenOCD. You can safely ignore it, it is only an `echo` message that is
+When the plugin execution is terminated, you get an error message about
+OpenOCD. You can safely ignore it, it is only an `echo` message that is
 erroneously triggered.
 
 > [!CAUTION]
 >
-> **For Windows users.**
-> When you run `continue` with no breakpoints it does not seem possible to
-> take control back of the gdb console. Ideally, a `ctrl-c` should interrupt gdb but it is not the case.
-> You must go on the gdb console and execute `<c-w>:close!` to shutoff everything.
+> **For Windows users.** When you run `continue` with no breakpoints it does
+> not seem possible to take control back of the gdb console. Ideally, a
+> `ctrl-c` should interrupt gdb but it is not the case. You must go on the gdb
+> console and execute `<c-w>:close!` to shutoff everything.
 >
 > However, if you are willing to use an external program for sending `SIGINT`
-> signals, then you can set `g:microdebugger_windows_CtrlC_program`.
-> By doing that, `ctrl-c` would exploit such a program to interrupt the non-responding gdb.
-
-> For example, if you use [SendSignalCtrlC.exe](https://github.com/SergeyPirogov/video-recorder-java/raw/master/core/src/main/resources/SendSignalCtrlC.exe),
-> then you can set `g:microdebugger_windows_CtrlC_program = 'SendSignalCtrlC'`.
-> Be sure that such a program is in your Windows path.
-> Once done, you have a working `:Stop` command mapped locally to `<c-c>` to
-> interrupt the gdb execution.
+> signals, then you can set `g:microdebugger_windows_CtrlC_program`. By doing
+> that, `ctrl-c` would exploit such a program to interrupt the non-responding
+> gdb.
+>
+> For example, if you use
+> [SendSignalCtrlC.exe](https://github.com/SergeyPirogov/video-recorder-java/raw/master/core/src/main/resources/SendSignalCtrlC.exe),
+> then you can set
+> `g:microdebugger_windows_CtrlC_program = 'SendSignalCtrlC'`. Be sure that
+> such a program is in your Windows path. Once done, you have a working
+> `:Stop` command mapped locally to `<c-c>`.
 >
 > **BE CAREFUL** since the command may append garbage to the buffer opened in
 > the `:Source` window.
@@ -80,12 +82,13 @@ following:
 # Create or jump to the variables window
 :MicroDebugVar
 ```
-Do not use `:Termdebug` to start the MCU debugging but use `:MicroDebug` instead.
 
-The commands `:MicroDebugAsm` and `:MicroDebugVar` are wrappers around `:Asm` and `:Var`
-commands of Termdebug that you should use if you use this plugin.
+Do not use `:Termdebug` to start the MCU debugging but use `:MicroDebug`
+instead.
+
+The commands `:MicroDebugAsm` and `:MicroDebugVar` are wrappers around `:Asm`
+and `:Var` commands of Termdebug that you should use if you use this plugin.
 Otherwise, the windows layout will get messy.
-
 
 ## Configuration
 
@@ -118,6 +121,9 @@ g:microdebugger_aux_win_width
 
 # User-defined mappings
 g:microdebugger_mappings
+
+# Command for sending SIGINT (only for Windows)
+g:microdebugger_windows_CtrlC_program
 ```
 
 Note that you also have to configure `g:termdebug_config['command']` to
@@ -130,6 +136,7 @@ vim9script
 
 g:termdebug_config['command'] = ['arm-none-eabi-gdb', '-ex', 'target extended-remote localhost:3333', '-ex', 'monitor reset']
 
+g:microdebugger_windows_CtrlC_program = 'SendSignalCtrlC'
 g:microdebugger_openocd_command = ['openocd', '-f', 'stlink.cfg', '-f', 'stm32f4x.cfg']
 # Or something like g:microdebugger_openocd_command = ['cmd.exe', '/c', 'openocd_startup.bat']
 g:microdebugger_aux_windows = ['variables', 'monitor']
@@ -148,13 +155,10 @@ g:microdebugger_mappings = { C: '<Cmd>Continue<CR><cmd>call TermDebugSendCommand
 
 ## Events
 
-The order of execution when launching MicroDebugger is to start openocd server,
-to start Termdebug, and to start the auxiliary buffers.
+The order of execution when launching MicroDebugger is to start openocd
+server, to start Termdebug, and to start the auxiliary buffers.
 
-In addition to the events offered by Termdebug, you have an
-additional event `MicrodebuggerStartPost` that you can use in your
-auto-commands.
-
-
+In addition to the events offered by Termdebug, you have an additional event
+`MicrodebuggerStartPost` that you can use in your auto-commands.
 
 ## Happy debugging!
