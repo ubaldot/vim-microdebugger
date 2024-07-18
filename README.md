@@ -57,7 +57,7 @@ MicroDebugOpenocd # Create or jump to the openocd window
 MicroDebugAsm # Create or jump to the disassemble window
 MicroDebugVar # Create or jump to the variables window
 ```
-Do not use `:Termdebug` to start the MCU debugging but use `MicroDebug`
+Do not use `:Termdebug` to start the MCU debugging but use `:MicroDebug`
 instead.
 
 The latter are wrappers around `:Asm` and `:Var` commands of Termdebug that
