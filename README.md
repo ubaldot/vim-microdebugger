@@ -74,7 +74,7 @@ The available commands in addition to those provided by Termdebug are:
 ```
 Do not use `:Termdebug` to start the MCU debugging but use `:MicroDebug` instead.
 
-The commands `:MicroDebugAsm` and `:MicroDebugVar` in the list are wrappers around `:Asm` and `:Var`
+The commands `:MicroDebugAsm` and `:MicroDebugVar` are wrappers around `:Asm` and `:Var`
 commands for Termdebug thatvyou should use if you use this plugin. Otherwise, the windows layout will get messy.
 
 
