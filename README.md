@@ -54,9 +54,9 @@ The available commands are:
 MicroDebug  # Starts the microdebugger
 MicroDebugMonitor # Create or jump to the monitor window
 MicroDebugOpenocd # Create or jump to the openocd window
+InterruptGdb # To interrupt gdb execution (only available on Windows)
 MicroDebugAsm # Create or jump to the disassemble window
 MicroDebugVar # Create or jump to the variables window
-InterruptGdb # To interrupt gdb execution (only available on Windows)
 ```
 
 The latter are wrappers around `:Asm` and `:Var` commands of Termdebug that
