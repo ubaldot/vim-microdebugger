@@ -48,7 +48,8 @@ erroneously triggered.
 
 ## Commands
 
-The available commands in addition to those provided by Termdebug are:
+The available commands in addition to those provided by Termdebug are the
+following:
 
 ```
 # Starts the microdebugger. Use this to start the microdebugger
