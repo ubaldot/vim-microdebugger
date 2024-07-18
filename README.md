@@ -8,8 +8,8 @@ It requires Vim 9.1516.
 <img src="/Microdebugger.png" width="100%" height="100%">
 </p>
 
-Microdebugger starts a `openocd` server in a hidden, unlisted buffer so that
-you can connect to it using Termdebug as a gdb client. A good overview of how
+Microdebugger starts a `openocd` server in a hidden, unlisted buffer that
+you can connect to by using Termdebug as a gdb client. A good overview of how
 openocd works along with different clients is given
 [here](https://stackoverflow.com/questions/38033130/how-to-use-the-gdb-gnu-debugger-and-openocd-for-microcontroller-debugging-fr).
 
@@ -27,8 +27,10 @@ removed from here.
 ### Known bugs
 
 The plugin has been tested on macos, Windows (read below) and
-partially on Linux. When the plugin execution is terminated, you get an error
-message about OpenOCD. You can safely ignore it, it is only an `echo` that is
+partially on Linux. 
+
+When the plugin execution is terminated, you get an error
+message about OpenOCD. You can safely ignore it, it is only an `echo` message that is
 erroneously triggered.
 
 > [!CAUTION]
@@ -36,7 +38,7 @@ erroneously triggered.
 > **For Windows users.**
 > When you run `continue` with no breakpoints it does not seem possible to
 > take control back of the gdb console. In that case you must go on the gdb
-> console and`<c-w>:close!`.
+> console and`<c-w>:close!` to shutoff everything.
 >
 > However, if you are willing to download [SendSignalCtrlC.exe](https://github.com/SergeyPirogov/video-recorder-java/raw/master/core/src/main/resources/SendSignalCtrlC.exe)
 > and place in your Windows path, then you have a working
@@ -83,7 +85,6 @@ Otherwise, the windows layout will get messy.
 ## Configuration
 
 The configuration parameters are the following:
-
 
 ```
 # Command to start openocd
