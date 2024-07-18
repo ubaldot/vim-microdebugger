@@ -2,6 +2,7 @@
 
 A tiny plugin built on top of Termdebug to play with micro-controllers. It is
 written in Vim9 and it relies on `openocd` (to be installed separately).
+It requires Vim 9.1516.
 
 <p align="center">
 <img src="/Microdebugger.png" width="100%" height="100%">
@@ -39,7 +40,7 @@ erroneously triggered.
 >
 > However, if you are willing to download [SendSignalCtrlC.exe](https://github.com/SergeyPirogov/video-recorder-java/raw/master/core/src/main/resources/SendSignalCtrlC.exe)
 > and place in your Windows path, then you have an additional command
-> `:Interrupt` mapped locally on `<c-c>` that you can use to interrupt the gdb
+> `:InterruptGdb` mapped locally on `<c-c>` that you can use to interrupt the gdb
 > execution.
 >
 > **BE CAREFUL** since the command may append garbage to the buffer opened in
@@ -55,7 +56,7 @@ MicroDebugMonitor # Create or jump to the monitor window
 MicroDebugOpenocd # Create or jump to the openocd window
 MicroDebugAsm # Create or jump to the disassemble window
 MicroDebugVar # Create or jump to the variables window
-Interrupt # To interrupt gdb execution (only available on Windows)
+InterruptGdb # To interrupt gdb execution (only available on Windows)
 ```
 
 The latter are wrappers around `:Asm` and `:Var` commands of Termdebug that

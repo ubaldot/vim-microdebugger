@@ -60,7 +60,7 @@ var monitor_term_waiting_time: number
 var openocd_term_waiting_time: number
 
 var existing_mappings: dict<any>
-var ctrl_c_map: dict<any>
+var ctrl_c_map_saved: dict<any>
 
 def InitScriptVars()
   openocd_bufname = 'OPENOCD'
@@ -188,7 +188,7 @@ def MicrodebuggerStart()
   execute "Termdebug"
   exe ":Gdb"
   ctrl_c_map_saved = maparg('<c-c>', 'i', false, true)
-  inoremap <buffer> <C-c> <cmd>Interrupt<cr>
+  inoremap <buffer> <C-c> <cmd>InterruptGdb<cr>
   gdb_bufname = bufname()
   gdb_bufnr = bufnr()
   gdb_win = win_getid()
@@ -375,7 +375,7 @@ def SetUpMicrodebugger()
   command! MicroDebugMonitor GotoOrCreateMonitorWindow()
   command! MicroDebugOpenocd GotoOrCreateOpenocdWindow()
 
-  command! Interrupt InterruptGdb()
+  command! InterruptGdb InterruptGdb()
 
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
@@ -409,7 +409,7 @@ def TearDownMicrodebugger()
   delcommand MicroDebugVar
   delcommand MicroDebugMonitor
   delcommand MicroDebugOpenocd
-  silent! delcommand Interrupt
+  silent! delcommand InterruptGdb
 
   if exists('g:microdebugger_mappings')
     for key in keys(g:microdebugger_mappings)
