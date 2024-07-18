@@ -60,7 +60,7 @@ MicroDebugVar # Create or jump to the variables window
 Do not use `:Termdebug` to start the MCU debugging but use `:MicroDebug`
 instead.
 
-The latter are wrappers around `:Asm` and `:Var` commands of Termdebug that
+The latter commands in the list are wrappers around `:Asm` and `:Var` commands of Termdebug that
 you should use if you use this plugin. Otherwise, the windows layout will get
 messy.
 
@@ -108,8 +108,13 @@ g:microdebugger_mappings = { C: '<Cmd>Continue<CR><cmd>call TermDebugSendCommand
 
 ## Events
 
-Finally, in addition to the events offered by Termdebug, you have an
+The order of execution when launching MicroDebugger is to start openocd server,
+to start Termdebug, and to start the auxiliary buffers.
+
+In addition to the events offered by Termdebug, you have an
 additional event `MicrodebuggerStartPost` that you can use in your
 auto-commands.
 
-**Happy debugging!**
+
+
+## Happy debugging!
