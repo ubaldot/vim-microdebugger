@@ -179,7 +179,6 @@ def MicrodebuggerStart()
 
   if !exists('g:termdebug_loaded')
     packadd! termdebug
-    # source ~/Documents/vim_official/vim/runtime/pack/dist/opt/termdebug/plugin/termdebug.vim
   endif
 
   # 1. Start openocd
@@ -202,11 +201,15 @@ def MicrodebuggerStart()
   execute "Termdebug"
   exe ":Gdb"
 
+  # Fix prompt mode autocompletion
+  if g:termdebug_config->get('use_prompt', false) || has('win32')
+    tab_map_saved = maparg('<tab>', 'i', false, true)
+    inoremap <buffer> <tab> <c-x><c-f>
+  endif
+
   if executable(ctrl_c_program) && has('win32')
     ctrl_c_map_saved = maparg('<c-c>', 'i', false, true)
-    tab_map_saved = maparg('<tab>', 'i', false, true)
     inoremap <buffer> <C-c> <cmd>Stop<cr>
-    inoremap <buffer> <tab> <c-x><c-f>
   endif
   gdb_bufname = bufname()
   gdb_bufnr = bufnr()
