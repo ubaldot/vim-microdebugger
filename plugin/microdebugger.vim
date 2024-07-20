@@ -177,6 +177,8 @@ def MicrodebuggerStart()
     return
   endif
 
+  # TODO: Check if this appears
+  echo "Microdebugger is starting ... "
   if !exists('g:termdebug_loaded')
     packadd! termdebug
   endif
@@ -217,6 +219,7 @@ def MicrodebuggerStart()
   setbufvar(gdb_bufname, "&buflisted", false)
   setbufvar(gdb_bufname, "&bufhidden", 'wipe')
   setwinvar(gdb_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+  setlocal wildmode=list:longest
 
   # We close "debugged-program" buffer because it may not be of interest for
   # embedded.
