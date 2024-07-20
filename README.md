@@ -1,8 +1,8 @@
-# vim-microdebugger
+# vim-microdebugger (WIP)
 
 A tiny plugin built on top of Termdebug to play with micro-controllers. It is
 written in Vim9 and it relies on `openocd` (to be installed separately). It
-requires Vim 9.1516.
+requires Vim 9.xxxx.
 
 <p align="center">
 <img src="/Microdebugger.png" width="100%" height="100%">
@@ -28,6 +28,9 @@ removed from here.
 
 The plugin has been tested on macos, Windows (read below) and partially on
 Linux.
+
+Sometimes you can get some `Termdebug` errors when launching `Microdebugger`.
+In that case, manually add `Termdebug` with `:packadd termdebug`.
 
 When the plugin execution is terminated, you get an error message about
 OpenOCD. You can safely ignore it, it is only an `echo` message that is
