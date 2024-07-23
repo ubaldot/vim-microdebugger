@@ -8,7 +8,7 @@ vim9script noclear
 # open-ocd.
 #
 #
-if !has('vim9script') ||  v:version < 900
+if !has('vim9script') ||  v:version < 901
   finish
 endif
 

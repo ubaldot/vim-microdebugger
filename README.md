@@ -2,7 +2,7 @@
 
 A tiny plugin built on top of Termdebug to play with micro-controllers. It is
 written in Vim9 and it relies on `openocd` (to be installed separately). It
-requires Vim 9.xxxx.
+requires Vim 9.1.0602.
 
 <p align="center">
 <img src="/Microdebugger.png" width="100%" height="100%">
