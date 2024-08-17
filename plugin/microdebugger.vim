@@ -186,7 +186,7 @@ def MicrodebuggerStart()
   # 1. Start openocd
   silent! openocd_bufnr = term_start(g:microdebugger_openocd_command, {term_name: openocd_bufname, hidden: 1, exit_cb: OpenOcdExitHandler})
   if openocd_bufnr == 0
-    Echoerr('Invlid OpenOCD opening command. Microdebbugger will not start')
+    Echoerr('Invlid OpenOCD opening command. Microdebbugger will not start. Check ''g:microdebugger_openocd_command'' variable')
     ShutoffMicrodebugger()
     return
   endif
