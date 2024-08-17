@@ -1,4 +1,4 @@
-# vim-microdebugger (WIP)
+# vim-microdebugger
 
 A tiny plugin built on top of Termdebug to play with micro-controllers. It is
 written in Vim9 and it relies on `openocd` (to be installed separately). It

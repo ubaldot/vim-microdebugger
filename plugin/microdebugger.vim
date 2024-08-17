@@ -463,7 +463,7 @@ enddef
 
 augroup MicrodebuggerSetUpTearDown
   autocmd!
-  autocmd User TermdebugStartPost SetUpMicrodebugger()
+  autocmd User MicrodebuggerStartPost SetUpMicrodebugger()
   autocmd User TermdebugStopPost  TearDownMicrodebugger()
 augroup END
 
