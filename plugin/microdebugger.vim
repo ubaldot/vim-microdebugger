@@ -26,7 +26,7 @@ def Echowarn(msg: string)
   echohl WarningMsg | echom $'[microdebugger] {msg}' | echohl None
 enddef
 
-command! MicroDebug MicrodebuggerStart()
+command! -nargs=? -complete=file MicroDebug MicrodebuggerStart(<f-args>)
 
 # Script global variables
 var openocd_bufname: string
@@ -166,7 +166,7 @@ def OpenOcdExitHandler(job_id: any, exit_status: number)
   endif
 enddef
 
-def MicrodebuggerStart()
+def MicrodebuggerStart(filename: string = '')
   if exists('g:termdebug_is_running') && g:termdebug_is_running
     Echoerr('Terminal debugger is already running, cannot run two')
     return
@@ -200,7 +200,7 @@ def MicrodebuggerStart()
 
 
   # 2. Start Termdebug and connect the gdb client to openocd (see g:termdebug_config['command'])
-  execute "Termdebug"
+  execute $"Termdebug {filename}"
   exe ":Gdb"
 
   # Fix prompt mode autocompletion
@@ -422,6 +422,13 @@ def ShutoffMicrodebugger()
   # triggered
   # Extension of Termdebug CloseBuffers() function
   # Closing gdb_bufnr close the whole Termdebug
+  job_stop(term_getjob(openocd_bufnr), "kill")
+  job_stop(term_getjob(monitor_bufnr), "kill")
+
+  # For debugging
+  # echom job_status(term_getjob(openocd_bufnr))
+  # echom job_status(term_getjob(monitor_bufnr))
+
   var bufnumbers = [monitor_bufnr, openocd_bufnr, gdb_bufnr]
   for bufnr in bufnumbers
     if bufnr > 0 && bufexists(bufnr)
