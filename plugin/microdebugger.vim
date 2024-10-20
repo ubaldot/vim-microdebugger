@@ -219,7 +219,7 @@ def MicrodebuggerStart(filename: string = '')
   setbufvar(gdb_bufname, "&buflisted", false)
   setbufvar(gdb_bufname, "&bufhidden", 'wipe')
   setwinvar(gdb_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
-  setlocal wildmode=list:longest
+  # setlocal wildmode=list:longest
 
   # We close "debugged-program" buffer because it may not be of interest for
   # embedded.
