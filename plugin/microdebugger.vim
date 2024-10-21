@@ -1,18 +1,16 @@
 vim9script noclear
 
-# A tiny plugin on top of Termdebug for debugging MCUs code.
+# A tiny plugin on top of Termdebug for gdb remote debugging.
 # Maintainer: Ubaldo Tiberi
 # License: Vim license
 #
-# Debugger for microcontrollers built on top of Termdebug and that uses
-# open-ocd.
 #
 #
 if !has('vim9script') ||  v:version < 901
   finish
 endif
 
-if exists('g:microdebugger_loaded')
+if exists('g:microdebugger_loaded') && g:microdebugger_loaded
     Echoerr('Plugin already loaded.')
     finish
 endif
@@ -29,10 +27,10 @@ enddef
 command! -nargs=? -complete=file MicroDebug MicrodebuggerStart(<f-args>)
 
 # Script global variables
-var openocd_bufname: string
-var openocd_bufnr: number
-var openocd_win: number
-# var openocd_failure: bool
+var server_bufname: string
+var server_bufnr: number
+var server_win: number
+# var server_failure: bool
 
 var monitor_bufname: string
 var monitor_bufnr: number
@@ -57,7 +55,7 @@ var aux_windows_pos: string
 var aux_windows_width: number
 
 var monitor_term_waiting_time: number
-var openocd_term_waiting_time: number
+var server_term_waiting_time: number
 
 var existing_mappings: dict<any>
 var ctrl_c_map_saved: dict<any>
@@ -65,12 +63,15 @@ var tab_map_saved: dict<any>
 
 var ctrl_c_program: string
 
+# UBA
+var microdebugger_tabnr = -1
+
 def InitScriptVars()
-  openocd_bufname = 'OPENOCD'
+  server_bufname = 'SERVER'
   # term_start returns 0 if the job fails to start. Hence, it is safer to use
   # -1 as initial condition
-  openocd_bufnr = -1
-  openocd_win = 0
+  server_bufnr = -1
+  server_win = 0
 
   monitor_bufname = 'Monitor'
   monitor_bufnr = -1
@@ -91,13 +92,13 @@ def InitScriptVars()
   source_win = 0
   # The possible values for g:microdebugger_aux_windows corresponds to the
   # keys of the following dictionaries.
-  aux_windows = {variables: GotoOrCreateVarWindow, monitor: GotoOrCreateMonitorWindow, asm: GotoOrCreateAsmWindow, openocd: GotoOrCreateOpenocdWindow}
-  aux_bufnames = {variables: var_bufname, monitor: monitor_bufname, asm: asm_bufname, openocd: openocd_bufname}
+  aux_windows = {variables: GotoOrCreateVarWindow, monitor: GotoOrCreateMonitorWindow, asm: GotoOrCreateAsmWindow, server: GotoOrCreateServerWindow}
+  aux_bufnames = {variables: var_bufname, monitor: monitor_bufname, asm: asm_bufname, server: server_bufname}
   aux_windows_pos = get(g:, 'microdebugger_aux_win_pos', 'L')
   aux_windows_width = get(g:, 'microdebugger_aux_win_width', &columns / 3)
 
   monitor_term_waiting_time = get(g:, 'microdebugger_monitor_waiting_time', 1000)
-  openocd_term_waiting_time = get(g:, 'microdebugger_openocd_waiting_time', 1000)
+  server_term_waiting_time = get(g:, 'microdebugger_server_waiting_time', 1000)
 
   existing_mappings = {}
   ctrl_c_map_saved = {}
@@ -107,15 +108,18 @@ def InitScriptVars()
   g:termdebug_config['disasm_window'] = false
 
   ctrl_c_program = get(g:, 'microdebugger_windows_CtrlC_program', '')
+
+  microdebugger_tabnr = -1
 enddef
 
 def SanityCheck(): bool
   var is_check_ok = true
 
-  if !executable('openocd')
-    Echoerr("'openocd' not found. Cannot start the debugger" )
-    is_check_ok = false
-  endif
+  # TODO: this is tricky to verify as it may execute a .sh script
+  # if !executable('openocd')
+  #   Echoerr("'openocd' not found. Cannot start the debugger" )
+  #   is_check_ok = false
+  # endif
 
   if !exists('g:termdebug_config')
     Echoerr("'g:termdebug_config' is not set" )
@@ -125,8 +129,8 @@ def SanityCheck(): bool
     is_check_ok = false
   endif
 
-  if !exists('g:microdebugger_openocd_command')
-    Echoerr("'g:microdebugger_openocd_command' is not set" )
+  if !exists('g:microdebugger_server_command')
+    Echoerr("'g:microdebugger_server_command' is not set" )
     is_check_ok = false
   endif
 
@@ -159,10 +163,10 @@ def SanityCheck(): bool
   return is_check_ok
 enddef
 
-def OpenOcdExitHandler(job_id: any, exit_status: number)
+def ServerExitHandler(job_id: any, exit_status: number)
   if exit_status != 0
-    Echoerr('OpenOCD detected some errors. Microdebugger will not work')
-    # openocd_failure = true
+    Echoerr('Server detected some errors. Microdebugger will not work')
+    # server_failure = true
   endif
 enddef
 
@@ -183,23 +187,27 @@ def MicrodebuggerStart(filename: string = '')
     packadd! termdebug
   endif
 
-  # 1. Start openocd
-  silent! openocd_bufnr = term_start(g:microdebugger_openocd_command, {term_name: openocd_bufname, hidden: 1, exit_cb: OpenOcdExitHandler})
-  if openocd_bufnr == 0
-    Echoerr('Invlid OpenOCD opening command. Microdebbugger will not start. Check ''g:microdebugger_openocd_command'' variable')
+  # UBA
+  tab split
+  microdebugger_tabnr = tabpagenr()
+
+  # 1. Start server
+  silent! server_bufnr = term_start(g:microdebugger_server_command, {term_name: server_bufname, hidden: 1, exit_cb: ServerExitHandler})
+  if server_bufnr == 0
+    Echoerr('Invlid Server opening command. Microdebbugger will not start. Check ''g:microdebugger_server_command'' variable')
     ShutoffMicrodebugger()
     return
   endif
-  term_wait(openocd_bufname, openocd_term_waiting_time)
-  setbufvar(openocd_bufname, "&buflisted", false)
+  term_wait(server_bufname, server_term_waiting_time)
+  setbufvar(server_bufname, "&buflisted", false)
 
   # For debugging
-  # var openocd_job = term_getjob(openocd_bufnr)
+  # var server_job = term_getjob(server_bufnr)
   # ch_logfile('logfile', 'w')
-  # ch_log('openocd log')
+  # ch_log('server log')
 
 
-  # 2. Start Termdebug and connect the gdb client to openocd (see g:termdebug_config['command'])
+  # 2. Start Termdebug and connect the gdb client to server (see g:termdebug_config['command'])
   execute $"Termdebug {filename}"
   exe ":Gdb"
 
@@ -270,8 +278,8 @@ def AuxBuffersWinIDs(): list<number>
 enddef
 
 def ResizeAuxWindows()
-  if win_gotoid(openocd_win)
-    win_execute(openocd_win, $'vertical resize {aux_windows_width}')
+  if win_gotoid(server_win)
+    win_execute(server_win, $'vertical resize {aux_windows_width}')
   elseif win_gotoid(monitor_win)
     win_execute(monitor_win, $'vertical resize {aux_windows_width}')
   endif
@@ -313,7 +321,7 @@ def GotoOrCreateMonitorWindow()
       CreateMonitorWindow()
     else
       split
-      exe "buffer " .. monitor_bufnr
+      exe $"buffer {monitor_bufnr}"
     endif
     monitor_win = win_getid()
     SetWindowCommon(monitor_win)
@@ -325,15 +333,15 @@ def GotoOrCreateMonitorWindow()
   # endif
 enddef
 
-def GotoOrCreateOpenocdWindow()
-  if !win_gotoid(openocd_win)
+def GotoOrCreateServerWindow()
+  if !win_gotoid(server_win)
     split
-    exe "buffer " .. openocd_bufnr
-    openocd_win = win_getid()
-    SetWindowCommon(openocd_win)
-    setwinvar(openocd_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
+    exe "buffer " .. server_bufnr
+    server_win = win_getid()
+    SetWindowCommon(server_win)
+    setwinvar(server_win, '&statusline', '%#StatusLine# %t(%n)%m%*' )
   endif
-  win_execute(openocd_win, $'vertical resize {aux_windows_width}')
+  win_execute(server_win, $'vertical resize {aux_windows_width}')
 enddef
 
 def SetWindowCommon(current_winid: number)
@@ -402,7 +410,7 @@ def SetUpMicrodebugger()
   command! MicroDebugAsm GotoOrCreateAsmWindow()
   command! MicroDebugVar GotoOrCreateVarWindow()
   command! MicroDebugMonitor GotoOrCreateMonitorWindow()
-  command! MicroDebugOpenocd GotoOrCreateOpenocdWindow()
+  command! MicroDebugServer GotoOrCreateServerWindow()
   command! MicroDebugHalt g:TermDebugSendCommand("-interpreter-exec console \"monitor halt\"")
   command! MicroDebugResume g:TermDebugSendCommand("-interpreter-exec console \"monitor resume\"")
 
@@ -422,14 +430,17 @@ def ShutoffMicrodebugger()
   # triggered
   # Extension of Termdebug CloseBuffers() function
   # Closing gdb_bufnr close the whole Termdebug
-  job_stop(term_getjob(openocd_bufnr), "kill")
-  job_stop(term_getjob(monitor_bufnr), "kill")
+  job_stop(term_getjob(server_bufnr), "kill")
+  if monitor_bufnr != -1
+    job_stop(term_getjob(monitor_bufnr), "kill")
+  endif
 
   # For debugging
-  # echom job_status(term_getjob(openocd_bufnr))
+  # echom job_status(term_getjob(server_bufnr))
   # echom job_status(term_getjob(monitor_bufnr))
 
-  var bufnumbers = [monitor_bufnr, openocd_bufnr, gdb_bufnr]
+  exe $":tabclose {microdebugger_tabnr}"
+  var bufnumbers = [monitor_bufnr, server_bufnr, gdb_bufnr]
   for bufnr in bufnumbers
     if bufnr > 0 && bufexists(bufnr)
       exe $'bwipe! {bufnr}'
@@ -444,7 +455,7 @@ def TearDownMicrodebugger()
   delcommand MicroDebugAsm
   delcommand MicroDebugVar
   delcommand MicroDebugMonitor
-  delcommand MicroDebugOpenocd
+  delcommand MicroDebugServer
   delcommand MicroDebugHalt
   delcommand MicroDebugResume
 
