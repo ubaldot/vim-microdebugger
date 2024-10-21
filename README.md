@@ -2,7 +2,7 @@
 
 A micro plugin built on top of Termdebug to facilitate remote gdb debugging.
 Through this plugin, you should easily debug in docker
-containers or micro-controllers (MCUs).
+containers, micro-controllers (MCUs) and everything that runs a gdbserver.
 
 It is written in Vim9 and it requires Vim 9.1.0602.
 
@@ -55,7 +55,7 @@ following:
 :MicroDebugVar
 ```
 
-Do not use `:Termdebug` to start the MCU debugging but use `:MicroDebug`
+Do not use `:Termdebug` to start remote debugging but use `:MicroDebug`
 instead.
 
 The commands `:MicroDebugAsm` and `:MicroDebugVar` are wrappers around `:Asm`
@@ -123,7 +123,8 @@ g:microdebugger_server_command = ['docker run --rm -i -p 1234:1234 my_image  gdb
 
 A good overview of how openocd works along with different clients is given
 [here](https://stackoverflow.com/questions/38033130/how-to-use-the-gdb-gnu-debugger-and-openocd-for-microcontroller-debugging-fr).
-An example of initialization script could be the following:
+An example of initialization script could be the following. This time I also
+include some mappings.
 
 ```
 vim9script
@@ -138,6 +139,8 @@ g:microdebugger_aux_windows = ['variables', 'monitor']
 g:microdebugger_monitor_command = ['screen', '/dev/ttyUSB0', '115200']
 g:microdebugger_gdb_win_height = 8
 g:microdebugger_server_waiting_time = 5000 # ms
+
+# Some mappings
 g:microdebugger_mappings = { C: '<Cmd>Continue<CR><cmd>call TermDebugSendCommand("display")<cr>',
     B: '<Cmd>Break<CR><cmd>call TermDebugSendCommand("display")<cr>',
     D: '<Cmd>Clear<CR><cmd>call TermDebugSendCommand("display")<cr>',
