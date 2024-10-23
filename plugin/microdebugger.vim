@@ -439,13 +439,13 @@ def ShutoffMicrodebugger()
   # echom job_status(term_getjob(server_bufnr))
   # echom job_status(term_getjob(monitor_bufnr))
 
-  exe $":tabclose {microdebugger_tabnr}"
   var bufnumbers = [monitor_bufnr, server_bufnr, gdb_bufnr]
   for bufnr in bufnumbers
     if bufnr > 0 && bufexists(bufnr)
       exe $'bwipe! {bufnr}'
     endif
   endfor
+  exe $":tabclose {microdebugger_tabnr}"
 enddef
 
 def TearDownMicrodebugger()
