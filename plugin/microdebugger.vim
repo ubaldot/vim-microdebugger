@@ -430,9 +430,9 @@ def ShutoffMicrodebugger()
   # triggered
   # Extension of Termdebug CloseBuffers() function
   # Closing gdb_bufnr close the whole Termdebug
-  job_stop(term_getjob(server_bufnr), "kill")
+  job_stop(term_getjob(server_bufnr))
   if monitor_bufnr != -1
-    job_stop(term_getjob(monitor_bufnr), "kill")
+    job_stop(term_getjob(monitor_bufnr))
   endif
 
   # For debugging
