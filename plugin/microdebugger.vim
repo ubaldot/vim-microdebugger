@@ -10,9 +10,14 @@ if !has('vim9script') ||  v:version < 901
   finish
 endif
 
+var DEBUG = false
+
 if exists('g:microdebugger_loaded') && g:microdebugger_loaded
+  if DEBUG
     Echoerr('Plugin already loaded.')
-    finish
+  endif
+
+  finish
 endif
 g:microdebugger_loaded = true
 
