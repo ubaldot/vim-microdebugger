@@ -104,6 +104,13 @@ At the bare minimum, you have to establish how to fire up the server and how
 to connect to it. This is done through `g:microdebugger_server_command` and
 `g:termdebug_config['command']`, respectively.
 
+Note that `g:microdebugger_server_command`, which is executed on 
+the server side, may take some time to be completed. 
+If the client tries to connect to the gdb server before the gdb server is up 
+and running, the debugger ends up in an *failed connection* error. 
+This means that before trying to connect to the gdb server, you must wait that 
+the gdb server is up and running and that is listening to some port.
+
 ### Configuration for debugging in docker containers
 
 An example follows:
