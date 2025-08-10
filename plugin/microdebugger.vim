@@ -12,14 +12,14 @@ endif
 
 var DEBUG = false
 
-if exists('g:microdebugger_loaded') && g:microdebugger_loaded
+if exists('g:loaded_microdebugger') && g:loaded_microdebugger
   if DEBUG
     Echoerr('Plugin already loaded.')
   endif
 
   finish
 endif
-g:microdebugger_loaded = true
+g:loaded_microdebugger = true
 
 def Echoerr(msg: string)
   echohl ErrorMsg | echom $'[microdebugger] {msg}' | echohl None
