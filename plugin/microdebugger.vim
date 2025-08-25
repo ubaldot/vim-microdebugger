@@ -12,13 +12,6 @@ endif
 
 var DEBUG = false
 
-if exists('g:loaded_microdebugger') && g:loaded_microdebugger
-  if DEBUG
-    Echoerr('Plugin already loaded.')
-  endif
-
-  finish
-endif
 g:loaded_microdebugger = true
 
 def Echoerr(msg: string)
