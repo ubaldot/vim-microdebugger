@@ -1,4 +1,4 @@
-vim9script noclear
+vim9script
 
 # A tiny plugin on top of Termdebug for gdb remote debugging.
 # Maintainer: Ubaldo Tiberi
